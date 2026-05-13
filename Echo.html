@@ -3,323 +3,804 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ЭХО: DEFINITIVE EDITION</title>
+    <title>ECHO: TOTAL ARSENAL (GLOW EDITION)</title>
     <style>
-        body { margin: 0; overflow: hidden; background: #000; font-family: 'Courier New', monospace; touch-action: none; color: #0f0; }
-        canvas { display: block; width: 100vw; height: 100vh; position: absolute; }
-        
-        #creepy-text {
-            position: fixed; top: 80px; left: 50%; transform: translateX(-50%);
-            color: rgba(255, 0, 0, 0.6); font-size: 20px; font-weight: bold;
-            text-transform: uppercase; letter-spacing: 5px; pointer-events: none;
-            z-index: 1500; text-align: center; width: 100%; text-shadow: 0 0 10px #f00; opacity: 0; transition: opacity 0.5s;
+        :root { --color: #0f0; --bg: #000; }
+        body { margin: 0; overflow: hidden; background: var(--bg); font-family: 'Courier New', monospace; touch-action: none; color: var(--color); }
+        canvas { display: block; width: 100vw; height: 100vh; position: absolute; z-index: 1; }
+        .btn {
+            padding: 10px; background: rgba(0,0,0,0.7); color: var(--color); border: 1px solid var(--color);
+            font-size: 11px; cursor: pointer; margin: 4px; width: 280px; max-width: 300px; text-transform: uppercase;
+            letter-spacing: 1px; transition: 0.2s; outline: none; position: relative; z-index: 3000;
+            box-shadow: 0 0 10px rgba(0,255,0,0.2);
         }
-
-        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; text-align: center; }
-        h1, h2 { letter-spacing: 10px; font-size: 45px; margin: 0; color: #0f0; text-shadow: 0 0 20px #0f0; }
-        h2 { font-size: 25px; margin-bottom: 20px; }
-
-        .btn { padding: 12px; background: #000; color: #0f0; border: 2px solid #0f0; font-size: 13px; cursor: pointer; margin-top: 8px; width: 280px; text-transform: uppercase; font-family: inherit; font-weight: bold; outline: none; transition: 0.1s; }
-        .btn:active { background: #0f0; color: #000; }
-        
-        .setting-row { margin: 15px 0; width: 280px; text-align: left; }
-        input[type=range] { width: 100%; accent-color: #0f0; cursor: pointer; margin-top: 10px; }
-
-        #hud { position: fixed; top: 15px; left: 15px; right: 15px; display: flex; justify-content: space-between; z-index: 1000; display: none; }
-        #flash-btn { position: fixed; bottom: 30px; right: 30px; width: 90px; height: 90px; border-radius: 50%; border: 3px solid #0f0; color: #0f0; background: rgba(0,0,0,0.8); z-index: 1000; display: none; font-size: 11px; overflow: hidden; }
-        #flash-fill { position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(0,255,0,0.3); transition: height 0.1s linear; z-index: -1; }
-        
-        #scary-eye { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 5000; }
-        .eye-ball { width: 120px; height: 120px; background: #f00; border-radius: 50%; box-shadow: 0 0 80px #f00; animation: pulse 0.15s infinite; }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+        .btn:active { background: var(--color); color: var(--bg); }
+        .btn-red { --color: #f00; box-shadow: 0 0 10px rgba(255,0,0,0.2); }
+        .overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95); display: flex; flex-direction: column;
+            align-items: center; justify-content: center; z-index: 2000; text-align: center;
+        }
+        .setting-item { margin: 15px 0; width: 280px; text-align: left; font-size: 11px; text-transform: uppercase; z-index: 3000; }
+        input[type=range] { width: 100%; accent-color: var(--color); cursor: pointer; margin-top: 5px; }
+        #hud { position: fixed; top: 20px; left: 20px; right: 20px; display: none; justify-content: space-between; z-index: 1000; pointer-events: none; }
+        #hud * { pointer-events: auto; }
+        #flash-btn {
+            position: fixed; bottom: 30px; right: 30px; width: 85px; height: 85px;
+            border-radius: 50%; border: 2px solid var(--color); background: rgba(0,0,0,0.5);
+            color: var(--color); z-index: 1000; display: none; font-size: 10px; overflow: hidden;
+            box-shadow: 0 0 15px var(--color);
+        }
+        #flash-fill { position: absolute; bottom: 0; left: 0; width: 100%; background: var(--color); opacity: 0.4; transition: height 0.1s; z-index: -1; }
+        #joystick-base { position: fixed; width: 80px; height: 80px; border: 1px solid rgba(0,255,0,0.3); border-radius: 50%; display: none; pointer-events: none; z-index: 1500; }
+        #joystick-stick { position: absolute; width: 30px; height: 30px; border: 2px solid var(--color); border-radius: 50%; top: 25px; left: 25px; box-shadow: 0 0 10px var(--color); }
+        #shop-list { max-height: 60vh; overflow-y: auto; width: 310px; padding: 10px; border-top: 1px solid #222; border-bottom: 1px solid #222; z-index: 3000; }
+        .hero-card {
+            width: 280px; margin: 5px 0; background: rgba(0,0,0,0.8);
+            border: 1px solid var(--card-color, #0f0); padding: 10px 12px; cursor: pointer;
+            text-align: left; box-shadow: 0 0 8px var(--card-color, #0f0); transition: 0.2s;
+            position: relative; z-index: 3000;
+        }
+        .hero-card:active { background: rgba(255,255,255,0.05); }
+        .hero-card .hero-name { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; font-weight: bold; }
+        .hero-card .hero-desc { font-size: 10px; letter-spacing: 0.5px; text-transform: none; opacity: 0.7; margin-top: 4px; line-height: 1.4; }
+        .hero-card .hero-stats { font-size: 9px; opacity: 0.5; margin-top: 4px; letter-spacing: 1px; text-transform: uppercase; }
+        .hero-card .hero-price { position: absolute; top: 10px; right: 12px; font-size: 10px; letter-spacing: 1px; }
+        #screamer {
+            display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: #000; z-index: 10000; justify-content: center; align-items: center;
+        }
+        #screamer-text { color: #f00; font-size: 80px; font-weight: bold; text-transform: uppercase; text-shadow: 0 0 30px #f00; }
+        #danger-vignette {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 500;
+            background: radial-gradient(ellipse at center, transparent 40%, rgba(255,0,0,0) 100%);
+            opacity: 0; transition: opacity 0.1s;
+        }
+        .victory-screen {
+            display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: #000; z-index: 9000; flex-direction: column; align-items: center; justify-content: center;
+        }
+        #win-title {
+            color: #fff; font-size: 22px; letter-spacing: 4px; text-transform: uppercase;
+            text-shadow: 0 0 30px #fff, 0 0 60px rgba(255,255,255,0.3);
+            margin-bottom: 10px; animation: winPulse 2s infinite;
+        }
+        #win-sub { color: #888; font-size: 11px; letter-spacing: 3px; margin-bottom: 30px; }
+        @keyframes winPulse { 0%,100%{text-shadow:0 0 20px #fff} 50%{text-shadow:0 0 50px #fff, 0 0 80px rgba(255,200,100,0.4)} }
+        #confirm-screen {
+            display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.97); z-index: 9500; flex-direction: column;
+            align-items: center; justify-content: center; text-align: center;
+        }
+        #exorcism-canvas {
+            display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: 8000; pointer-events: none;
+        }
+        #streak-ui { display: none; color: #ff0; font-size: 11px; margin-top: 4px; letter-spacing: 2px; }
     </style>
 </head>
 <body>
-
-    <div id="creepy-text">ОНО ЗДЕСЬ</div>
-
+    <div id="danger-vignette"></div>
+    <div id="joystick-base"><div id="joystick-stick"></div></div>
     <div id="hud">
-        <div id="coin-ui" style="background:rgba(0,0,0,0.9); padding:10px; border:1px solid #0f0;">ОЧКИ: 0</div>
-        <button class="btn" style="width:auto; margin:0; padding: 5px 15px;" onclick="togglePause()">ПАУЗА</button>
-    </div>
-
-    <div id="menu" class="overlay">
-        <h1>ЭХО</h1>
-        <div id="wallet-ui" style="margin: 10px 0; font-size: 18px; color: #0f0;">ВАШИ ОЧКИ: 0</div>
-        <button class="btn" onclick="startGame(false)">ОБЫЧНЫЙ (+3)</button>
-        <button class="btn" onclick="startGame(true)" style="color:#f00; border-color:#f00;">ХАРДКОР (+6)</button>
-        <button class="btn" onclick="openShop()">ГЕРОИ</button>
-        <button class="btn" onclick="openSettings()">НАСТРОЙКИ</button>
-    </div>
-
-    <div id="settings" class="overlay" style="display:none;">
-        <h2>НАСТРОЙКИ</h2>
-        <div class="setting-row">
-            ГРОМКОСТЬ: <span id="vol-val">50%</span>
-            <input type="range" id="vol-slider" min="0" max="1" step="0.1" value="0.5" oninput="updateVol(this.value)">
+        <div>
+            <div id="stats-ui" style="border:1px solid var(--color); padding:8px; font-size:11px; background:rgba(0,0,0,0.8); box-shadow:0 0 10px var(--color);">СЧЕТ: 0</div>
+            <div id="streak-ui" style="margin-top:4px;">СЕРИЯ: 0</div>
         </div>
-        <button class="btn" id="ctrl-btn" onclick="toggleCtrl()">УПРАВЛЕНИЕ</button>
-        <button class="btn" onclick="toggleFS()">ПОЛНЫЙ ЭКРАН</button>
-        <button class="btn" onclick="closeSettings()" style="margin-top: 20px; border-color:#fff; color:#fff;">НАЗАД</button>
+        <button class="btn" style="width:auto;" onclick="togglePause(true)">ПАУЗА</button>
     </div>
-
+    <div id="menu" class="overlay">
+        <h1 style="letter-spacing:15px; margin:0; text-shadow:0 0 20px var(--color);">ECHO</h1>
+        <div id="wallet" style="margin:15px 0; font-size:13px;">КРЕДИТЫ: 0</div>
+        <div id="menu-streak" style="color:#ff0; font-size:11px; margin-bottom:20px; letter-spacing:2px;"></div>
+        <button class="btn" onclick="startGame(false)">ОБЫЧНЫЙ РЕЖИМ</button>
+        <button class="btn btn-red" onclick="startGame(true)">ХАРДКОР (X2)</button>
+        <button class="btn" onclick="openOverlay('shop')">АРСЕНАЛ (КЛАССЫ)</button>
+        <button class="btn" onclick="openOverlay('settings')">НАСТРОЙКИ</button>
+    </div>
+    <div id="pause-menu" class="overlay" style="display:none; background:rgba(0,0,0,0.9);">
+        <h2 style="letter-spacing:10px;">ПАУЗА</h2>
+        <button class="btn" onclick="togglePause(false)">ПРОДОЛЖИТЬ</button>
+        <button class="btn" onclick="openOverlay('settings', true)">НАСТРОЙКИ</button>
+        <button class="btn btn-red" onclick="goToMenu()">В МЕНЮ</button>
+    </div>
     <div id="shop" class="overlay" style="display:none;">
-        <h2>ГЕРОИ</h2>
-        <div id="shop-list" style="max-height: 55vh; overflow-y: auto; width: 100%;"></div>
-        <button class="btn" onclick="closeShop()" style="margin-top:15px;">НАЗАД</button>
+        <div style="font-size:16px; margin-bottom:10px; letter-spacing:5px;">ВЫБОР КЛАССА</div>
+        <div id="shop-list"></div>
+        <button class="btn" onclick="closeOverlays()">НАЗАД</button>
     </div>
-
-    <div id="pause-menu" class="overlay" style="display:none;">
-        <h1>ПАУЗА</h1>
-        <button class="btn" onclick="togglePause()">ПРОДОЛЖИТЬ</button>
-        <button class="btn" onclick="exitToMenu()">В МЕНЮ</button>
+    <div id="settings" class="overlay" style="display:none;">
+        <div style="font-size:16px; margin-bottom:20px;">НАСТРОЙКИ</div>
+        <button class="btn" onclick="toggleFullScreen()">ПОЛНОЭКРАННЫЙ РЕЖИМ</button>
+        <div class="setting-item">УПРАВЛЕНИЕ: <button class="btn" id="ctrl-mode-btn" onclick="toggleControlMode()" style="width:100%; margin:5px 0;">ДЖОЙСТИК</button></div>
+        <div class="setting-item">ГРОМКОСТЬ: <span id="vol-val">50%</span><input type="range" min="0" max="100" value="50" oninput="changeVolume(this.value)"></div>
+        <button class="btn" onclick="resetData()" style="border-color:#f00; color:#f00; margin-top:20px;">СБРОСИТЬ ПРОГРЕСС</button>
+        <button class="btn" onclick="closeOverlays()">НАЗАД</button>
     </div>
-
+    <div id="screamer"><div id="screamer-text">ПОПАЛСЯ</div></div>
+    <div id="exit-screen" class="victory-screen">
+        <div id="win-title">ВЫ СБЕЖАЛИ!</div>
+        <div id="win-sub">МОНСТР ОСТАЛСЯ ПОЗАДИ</div>
+        <button class="btn" onclick="continueAfterWin()">ПРОДОЛЖИТЬ</button>
+        <button class="btn btn-red" onclick="goToMenu()">В МЕНЮ</button>
+    </div>
+    <div id="win-screen" class="victory-screen">
+        <div id="win-title">ВЫ ПОБЕДИЛИ!</div>
+        <div id="win-sub">МОНСТР УНИЧТОЖЕН И ОТПРАВЛЕН В АД</div>
+        <div style="color:#555; font-size:10px; letter-spacing:2px; margin-bottom:25px; max-width:280px; line-height:1.6;">
+            СДЕЛАЙТЕ СКРИНШОТ ПРЕЖДЕ ЧЕМ НАЖАТЬ КНОПКУ.<br>
+            ПОСЛЕ НАЖАТИЯ ВЕСЬ ВАШ ПРОГРЕСС БУДЕТ СБРОШЕН.
+        </div>
+        <button class="btn btn-red" onclick="showConfirmReset()">В МЕНЮ (ВЕСЬ ПРОГРЕСС СБРОСИТСЯ)</button>
+    </div>
+    <div id="confirm-screen">
+        <div style="color:#f00; font-size:20px; letter-spacing:3px; margin-bottom:10px; text-shadow:0 0 20px #f00;">ТЫ ТОЧНО УСПЕЛ ЗАСКРИНШОТИТЬ?</div>
+        <div style="color:#666; font-size:11px; letter-spacing:2px; margin-bottom:30px; max-width:280px; line-height:1.6;">ТЫ ЖЕ ЭТО ПРОЧИТАЛ?</div>
+        <button class="btn" onclick="doFinalReset()" style="border-color:#f00; color:#f00;">ДА — СБРОСИТЬ ВСЁ</button>
+        <button class="btn" onclick="cancelReset()">НЕТ — ВЕРНУТЬСЯ НАЗАД</button>
+    </div>
+    <canvas id="exorcism-canvas"></canvas>
     <button id="flash-btn" onpointerdown="useFlash()">
         <div id="flash-fill"></div>
-        ИМПУЛЬС<br><span id="cd-txt">ГОТОВ</span>
+        <span id="btn-label">ИМПУЛЬС</span><br><span id="cd-text">ГОТОВ</span>
     </button>
-
-    <div id="scary-eye"><div class="eye-ball"></div><h1 style="color:#fff; margin-top:30px;">ПОЙМАН</h1></div>
     <canvas id="gameCanvas"></canvas>
-
 <script>
-// --- ХРАНИЛИЩЕ И АУДИО ---
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-let globalVolume = localStorage.getItem('echo_vol') !== null ? parseFloat(localStorage.getItem('echo_vol')) : 0.5;
-let ctrl = localStorage.getItem('echo_ctrl') || 'joy';
-let coins = parseInt(localStorage.getItem('echo_coins')) || 0;
-let owned = JSON.parse(localStorage.getItem('echo_owned')) || ['def'];
-let currentHeroId = localStorage.getItem('echo_hero') || 'def';
+(function() {
+const WORLD_SIZE = 3500;
+let coins = parseInt(localStorage.getItem('e_c')) || 0;
+let owned = JSON.parse(localStorage.getItem('e_o')) || ['def'];
+let curHero = localStorage.getItem('e_h') || 'def';
+let controlMode = localStorage.getItem('e_ctrl') || 'joystick';
+let volume = parseInt(localStorage.getItem('e_vol')) || 50;
+let streak = parseInt(localStorage.getItem('e_streak')) || 0;
+let isFromPause = false;
+let shakeX = 0, shakeY = 0, dangerIntensity = 0;
+let exorcismActive = false, exorcismT = 0, exorcismMX = 0, exorcismMY = 0;
+const EXC_DURATION = 3500;
 
-function saveGame() {
-    localStorage.setItem('echo_coins', coins);
-    localStorage.setItem('echo_owned', JSON.stringify(owned));
-    localStorage.setItem('echo_hero', currentHeroId);
-}
-
-function playSound(freq, type, duration, vol, slide=0) {
-    if (globalVolume <= 0) return;
-    try {
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = type;
-        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-        if(slide) osc.frequency.exponentialRampToValueAtTime(slide, audioCtx.currentTime + duration);
-        gain.gain.setValueAtTime(vol * globalVolume, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
-        osc.connect(gain); gain.connect(audioCtx.destination);
-        osc.start(); osc.stop(audioCtx.currentTime + duration);
-    } catch(e) {}
-}
-
-function updateVol(v) {
-    globalVolume = parseFloat(v);
-    document.getElementById('vol-val').innerText = Math.round(globalVolume*100) + '%';
-    localStorage.setItem('echo_vol', globalVolume);
-}
-
-// --- ГЕРОИ ---
 const heroes = [
-    { id: 'def', name: 'ВЫЖИВШИЙ', price: 0, s: 6.5, noise: 450, cd: 5000, color: '#0f0', shape:'circle' },
-    { id: 'sur_blue', name: 'РАЗВЕДЧИК', price: 25, s: 7.2, noise: 400, cd: 3500, color: '#33f', shape:'circle' },
-    { id: 'scout', name: 'СКАУТ', price: 30, s: 9.0, noise: 250, cd: 4000, color: '#0ff', shape:'square' },
-    { id: 'eng', name: 'ТЕХНИК', price: 35, s: 5.5, noise: 450, cd: 1500, color: '#f0f', shape:'rhombus' },
-    { id: 'ghost', name: 'ПРИЗРАК', price: 50, s: 5.0, noise: 600, isGhost: true, cd: 5000, color: '#fff', shape:'triangle' },
-    { id: 'priest', name: 'СВЯЩЕННИК', price: 100, s: 6.0, noise: 400, cd: 5000, isPriest: true, color: '#ff0', shape:'star' }
+    { id: 'def', name: 'ВЫЖИВШИЙ', price: 0, s: 6.5, noise: 450, cd: 5000, size:12, color: '#0f0', desc: 'Стандартный боец без особых способностей. Хорошо сбалансирован для новичков.', statLabel: 'СКР: ●●●○○  ШУМ: ●●●○○  КД: ●●○○○' },
+    { id: 'scout', name: 'СКАУТ', price: 40, s: 9.5, noise: 300, cd: 4000, size:12, color: '#0ff', desc: 'Быстрый разведчик. Двигается почти бесшумно и уходит от монстра на скорости.', statLabel: 'СКР: ●●●●●  ШУМ: ●●○○○  КД: ●●●○○' },
+    { id: 'eng', name: 'ТЕХНИК', price: 60, s: 5.5, noise: 450, cd: 1500, size:12, color: '#f0f', desc: 'Спам импульсов с минимальным перезарядом. Буквально засыпает пространство волнами.', statLabel: 'СКР: ●●○○○  ШУМ: ●●●○○  КД: ●●●●●' },
+    { id: 'detect', name: 'СЫЩИК', price: 200, s: 6.8, noise: 400, cd: 8000, size:12, isDetect: true, color: '#ff0', desc: 'Импульс временно показывает стрелку-указатель на выход. Полезен когда заблудился.', statLabel: 'СКР: ●●●○○  ШУМ: ●●●○○  КД: ●○○○○' },
+    { id: 'ghost', name: 'ПРИЗРАК', price: 350, s: 8.0, noise: 500, cd: 5000, size:12, isGhost: true, color: '#fff', desc: 'Проходит сквозь стены. Никаких преград, никаких тупиков — только открытое поле.', statLabel: 'СКР: ●●●●○  ШУМ: ●●●○○  КД: ●●○○○' },
+    { id: 'hacker', name: 'ХАКЕР', price: 400, s: 6.0, noise: 400, cd: 5000, size:12, isHacker: true, color: '#0a0', desc: 'Видит все стены сквозь тьму — они слабо светятся на экране постоянно.', statLabel: 'СКР: ●●○○○  ШУМ: ●●●○○  КД: ●●○○○' },
+    { id: 'pyro', name: 'ПИРОТЕХНИК', price: 450, s: 6.5, noise: 400, cd: 6000, size:12, isPyro: true, color: '#f80', desc: 'Мощный огненный импульс. Волна шире и ярче — освещает большую площадь.', statLabel: 'СКР: ●●●○○  ШУМ: ●●●○○  КД: ●●○○○' },
+    { id: 'spec', name: 'СПЕЦНАЗ', price: 500, s: 7.5, noise: 300, cd: 5000, size:12, isRadar: true, color: '#44f', desc: 'Встроенный радар: видит монстра когда тот находится в радиусе 450 единиц.', statLabel: 'СКР: ●●●●○  ШУМ: ●●○○○  КД: ●●○○○' },
+    { id: 'med', name: 'МЕДИУМ', price: 550, s: 6.2, noise: 400, cd: 5000, size:12, isMed: true, color: '#a0f', desc: 'Чувствует присутствие монстра. Импульс окрашивается в красный при опасности.', statLabel: 'СКР: ●●○○○  ШУМ: ●●●○○  КД: ●●○○○' },
+    { id: 'ninja', name: 'НИНДЗЯ', price: 600, s: 8.5, noise: 99999, cd: 4000, size:12, color: '#555', desc: 'Абсолютно бесшумный. Шаги не привлекают монстра совсем — только импульс.', statLabel: 'СКР: ●●●●●  ШУМ: ●●●●●  КД: ●●●○○' },
+    { id: 'alch', name: 'АЛХИМИК', price: 650, s: 7.0, noise: 400, cd: 5000, size:12, isAlch: true, color: '#7f7', desc: 'Мастер зелий. Импульс оставляет светящийся туман — временно скрывает позицию.', statLabel: 'СКР: ●●●○○  ШУМ: ●●●○○  КД: ●●○○○' },
+    { id: 'monk', name: 'МОНАХ', price: 700, s: 6.0, noise: 500, cd: 6000, size:12, isMonk: true, color: '#daa', desc: 'Увеличенный радиус импульса — волна распространяется в 1.6× дальше обычного.', statLabel: 'СКР: ●●○○○  ШУМ: ●●●○○  КД: ●●○○○' },
+    { id: 'shadow', name: 'ТЕНЬ', price: 750, s: 7.2, noise: 600, cd: 5000, size:12, isShadow: true, color: '#aaa', desc: 'Сливается с темнотой. Импульс слабее, но монстр теряет след быстрее.', statLabel: 'СКР: ●●●○○  ШУМ: ●●●●○  КД: ●●○○○' },
+    { id: 'priest', name: 'СВЯЩЕННИК', price: 800, s: 5.0, noise: 300, cd: 4000, size:12, isPriest: true, color: '#ffd700', desc: 'Две жизни. При первой смерти возрождается в случайном месте и выпускает святой импульс, парализующий монстра на 3 секунды. Импульс не раскрывает карту.', statLabel: 'СКР: ●○○○○  ШУМ: ●●○○○  КД: ●●●○○  ♰ 2 ЖИЗНИ' },
+    { id: 'mad', name: 'БЕЗУМЕЦ', price: 850, s: 9.0, noise: 200, cd: 3000, size:12, isMad: true, color: '#f05', desc: 'Хаотичный и непредсказуемый. Шумит постоянно, но зато невероятно быстр.', statLabel: 'СКР: ●●●●●  ШУМ: ●○○○○  КД: ●●●●○' },
+    { id: 'gnome', name: 'ГНОМ', price: 300, s: 8.2, noise: 450, cd: 5000, size:6, color: '#8B4513', desc: 'Маленький и юркий гном. Уменьшенный хитбокс и повышенная скорость.', statLabel: 'СКР: ●●●●○  ШУМ: ●●●○○  КД: ●●○○○' },
+    { id: 'god', name: 'ЭХО-ИСКАТЕЛЬ', price: 1500, s:11.0, noise: 100, cd: 500, size:12, color: '#f00', desc: 'Легендарный класс. Максимальная скорость, почти нет шума, перезаряд мгновенный.', statLabel: 'СКР: ●●●●●  ШУМ: ●●●●●  КД: ●●●●●' },
 ];
-let hero = heroes.find(h => h.id === currentHeroId) || heroes[0];
 
-// --- НАВИГАЦИЯ ---
-function openSettings() { document.getElementById('settings').style.display = 'flex'; }
-function closeSettings() { document.getElementById('settings').style.display = 'none'; }
-function openShop() {
-    const list = document.getElementById('shop-list'); list.innerHTML = '';
-    heroes.forEach(h => {
-        const isSelected = hero.id === h.id;
-        const isOwned = owned.includes(h.id);
-        const btnColor = isOwned ? h.color : '#555';
-        let label = isSelected ? '[ВЫБРАНО]' : (isOwned ? '[ВЫБРАТЬ]' : `ЦЕНА: ${h.price}`);
-        list.innerHTML += `<button class="btn" style="border-color:${btnColor}; color:${btnColor}" onclick="buyHero('${h.id}')">${h.name}<br><small>${label}</small></button>`;
-    });
-    document.getElementById('shop').style.display = 'flex';
-}
-function buyHero(id) {
-    const target = heroes.find(x => x.id === id);
-    if(owned.includes(id)) {
-        hero = target; currentHeroId = id; playSound(400, 'sine', 0.1, 0.2);
-    } else if(coins >= target.price) {
-        coins -= target.price; owned.push(id); hero = target; currentHeroId = id;
-        playSound(600, 'sine', 0.3, 0.3);
-    } else {
-        playSound(100, 'sine', 0.2, 0.2); // Ошибка
-    }
-    saveGame(); openShop(); updateUI();
-}
-function closeShop() { document.getElementById('shop').style.display = 'none'; }
-
-function toggleFS() {
-    if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{});
-    else document.exitFullscreen();
-}
-function toggleCtrl() { 
-    ctrl = (ctrl === 'joy' ? 'follow' : 'joy'); 
-    localStorage.setItem('echo_ctrl', ctrl);
-    updateUI();
-}
-
-function updateUI() { 
-    document.getElementById('wallet-ui').innerText = "ВАШИ ОЧКИ: " + coins; 
-    document.getElementById('coin-ui').innerText = "ОЧКИ: " + coins; 
-    document.getElementById('vol-slider').value = globalVolume;
-    document.getElementById('vol-val').innerText = Math.round(globalVolume*100) + '%';
-    document.getElementById('ctrl-btn').innerText = `УПРАВЛЕНИЕ: ${ctrl === 'joy' ? 'ДЖОЙСТИК' : 'СЛЕДОВАНИЕ'}`;
-}
-
-// --- ЯДРО ИГРЫ ---
+let hasCross = JSON.parse(localStorage.getItem('e_cross')) || false;
+let h = heroes.find(x => x.id === curHero) || heroes[0];
+if (h.id === 'cross') { h = heroes[0]; curHero = 'def'; }
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
-let WORLD=3000, isPaused=false, gameActive=false, isTouching=false, isHard=false;
-let arrowA=0, shakeX=0, shakeY=0, lastFlash=0;
-let p={x:0, y:0, tStart:{x:0, y:0}, tCurr:{x:0, y:0}, step:0, lastMove:0, canRevive: false};
-let m={x:0, y:0, targetX:0, targetY:0, stun:0, a:0, mode: 'hunt'};
-let ex={x:0, y:0, a:0}, move={x:0, y:0}, rings=[], walls=[];
+const excCanvas = document.getElementById('exorcism-canvas');
+const excCtx = excCanvas.getContext('2d');
+
+let active = false, paused = false, isHard = false, lastPulse = 0;
+let p = {x:500, y:500, step:0};
+let m = {x:2000, y:2000, tx:2000, ty:2000, a:0, state:'idle'};
+let exit = {x:0, y:0, a:0}, rings = [], walls = [];
+let touch = false, move = {x:0, y:0}, arrowT = 0;
+let lastTouchPos = {x:0, y:0};
+let playerAngle = 0;
+let priestLives = 2;
+let monsterStunUntil = 0;
+let hasEscapedThisLevel = false; // чтобы не обрабатывать выход несколько раз
+
+function save() {
+    localStorage.setItem('e_c', coins);
+    localStorage.setItem('e_o', JSON.stringify(owned));
+    localStorage.setItem('e_h', curHero);
+    localStorage.setItem('e_ctrl', controlMode);
+    localStorage.setItem('e_vol', volume);
+    localStorage.setItem('e_cross', JSON.stringify(hasCross));
+    localStorage.setItem('e_streak', streak);
+}
+
+function toggleFullScreen() {
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+    else if (document.exitFullscreen) document.exitFullscreen();
+}
+function changeVolume(v) { volume = v; document.getElementById('vol-val').innerText = v + "%"; save(); }
+function toggleControlMode() { controlMode = (controlMode === 'joystick' ? 'follow' : 'joystick'); document.getElementById('ctrl-mode-btn').innerText = controlMode.toUpperCase(); save(); }
+
+function openOverlay(id, fromPause = false) {
+    isFromPause = fromPause;
+    document.querySelectorAll('.overlay').forEach(el => el.style.display = 'none');
+    document.getElementById(id).style.display = 'flex';
+    if(id === 'shop') renderShop();
+}
+function closeOverlays() {
+    document.querySelectorAll('.overlay').forEach(el => el.style.display = 'none');
+    if(isFromPause) document.getElementById('pause-menu').style.display = 'flex';
+    else document.getElementById('menu').style.display = 'flex';
+}
+
+function goToMenu() {
+    active = false;
+    paused = false;
+    exorcismActive = false;
+    resetDangerEffects();
+    document.getElementById('hud').style.display = 'none';
+    document.getElementById('flash-btn').style.display = 'none';
+    document.getElementById('exit-screen').style.display = 'none';
+    document.getElementById('win-screen').style.display = 'none';
+    document.getElementById('confirm-screen').style.display = 'none';
+    document.getElementById('pause-menu').style.display = 'none';
+    document.getElementById('shop').style.display = 'none';
+    document.getElementById('settings').style.display = 'none';
+    document.getElementById('menu').style.display = 'flex';
+    document.getElementById('joystick-base').style.display = 'none';
+    updateUI();
+    updateFlashBtn();
+}
+
+function renderShop() {
+    const list = document.getElementById('shop-list'); list.innerHTML = '';
+    heroes.forEach(item => {
+        const isOwned = owned.includes(item.id);
+        const isSel = curHero === item.id;
+        const priceLabel = isOwned ? (isSel ? '✓ ВЫБРАН' : 'КУПЛЕНО') : item.price + ' ₡';
+        list.innerHTML += `
+        <div class="hero-card" style="--card-color:${item.color}; color:${item.color}; ${isSel ? 'border-width:2px;' : ''}" onclick="selectHero('${item.id}')">
+            <div class="hero-name">${item.name} ${isSel ? '[✓]' : ''}</div>
+            <div class="hero-desc" style="color:rgba(255,255,255,0.6)">${item.desc}</div>
+            <div class="hero-stats">${item.statLabel}</div>
+            <div class="hero-price">${priceLabel}</div>
+        </div>`;
+    });
+    list.innerHTML += `<div style="text-align:center; color:#333; font-size:10px; letter-spacing:3px; padding:10px 0; border-top:1px solid #222; margin-top:8px;">──── АРТЕФАКТЫ ────</div>`;
+    const crossPriceLabel = hasCross ? '✓ ЕСТЬ' : '2000 ₡';
+    list.innerHTML += `
+    <div class="hero-card" style="--card-color:#fff; color:#fff; ${hasCross ? 'border-width:2px;' : ''}" onclick="buyCross()">
+        <div class="hero-name">☩ РАСПЯТЬЕ ${hasCross ? '[✓]' : ''}</div>
+        <div class="hero-desc" style="color:rgba(255,255,255,0.6)">Священный артефакт. Заменяет импульс на удар. При попадании в монстра — ритуал изгнания. <strong style="color:#fff">ОСТАЁТСЯ ПРИ ПРОМАХЕ.</strong> Монстр уходит в ад. <strong style="color:#fff">ПОБЕДА И СБРОС ПРОГРЕССА.</strong></div>
+        <div class="hero-stats">☩ ОДНОРАЗОВЫЙ (ТОЛЬКО ПРИ ПОПАДАНИИ)  ☩ УБИВАЕТ</div>
+        <div class="hero-price">${crossPriceLabel}</div>
+    </div>`;
+}
+
+function selectHero(id) {
+    const target = heroes.find(x => x.id === id);
+    if (!target) return;
+    if (owned.includes(id)) { h = target; curHero = id; }
+    else if (coins >= target.price) { coins -= target.price; owned.push(id); h = target; curHero = id; }
+    save(); renderShop(); updateUI();
+}
+function buyCross() {
+    if(hasCross) return;
+    if(coins >= 2000) { coins -= 2000; hasCross = true; save(); renderShop(); updateUI(); }
+}
+function updateFlashBtn() {
+    document.getElementById('btn-label').innerText = hasCross ? '☩' : 'ИМПУЛЬС';
+}
+
+function resetDangerEffects() {
+    shakeX = 0; shakeY = 0; dangerIntensity = 0;
+    document.getElementById('danger-vignette').style.opacity = '0';
+    document.body.style.filter = '';
+}
 
 function startGame(hard) {
-    if(audioCtx.state === 'suspended') audioCtx.resume();
-    if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{});
-    isHard = hard; WORLD = isHard ? 4000 : 3000;
-    p.x = 500; p.y = 500; p.canRevive = hero.isPriest;
-    do { ex.x = 500 + Math.random()*(WORLD-1000); ex.y = 500 + Math.random()*(WORLD-1000); } while (Math.hypot(ex.x-p.x, ex.y-p.y) < 1800);
-    do { m.x = 500 + Math.random()*(WORLD-1000); m.y = 500 + Math.random()*(WORLD-1000); } while (Math.hypot(m.x-p.x, m.y-p.y) < 1300);
-    m.stun=0; m.a=0; m.mode='hunt'; rings=[]; walls=[];
-    for(let i=0; i<70; i++) {
-        let wx = Math.random()*(WORLD-400)+200, wy = Math.random()*(WORLD-400)+200;
-        if(Math.hypot(wx-p.x, wy-p.y) > 400 && Math.hypot(wx-ex.x, wy-ex.y) > 300) walls.push({x:wx, y:wy, w:150, h:150, a:0});
+    active = true; isHard = hard; exorcismActive = false;
+    priestLives = h.isPriest ? 2 : 1;
+    monsterStunUntil = 0;
+    hasEscapedThisLevel = false;
+    p = {x:500, y:500, step:0};
+    exit = {x: Math.random()*(WORLD_SIZE-600)+300, y: Math.random()*(WORLD_SIZE-600)+300, a:0};
+    m = {x: WORLD_SIZE-500, y: WORLD_SIZE-500, tx: WORLD_SIZE-500, ty: WORLD_SIZE-500, a:0, state: 'idle'};
+    rings = []; walls = [];
+    resetDangerEffects();
+    for(let i=0; i<85; i++) {
+        let wx = 100+Math.random()*(WORLD_SIZE-300);
+        let wy = 100+Math.random()*(WORLD_SIZE-300);
+        if(Math.hypot(wx-p.x, wy-p.y) > 200 && Math.hypot(wx-exit.x, wy-exit.y) > 200)
+            walls.push({x:wx, y:wy, w:140, h:140, a:0});
     }
-    document.getElementById('menu').style.display='none';
-    document.getElementById('hud').style.display='flex';
-    document.getElementById('flash-btn').style.display='block';
-    gameActive=true; isPaused=false; updateUI(); 
-    playSound(80, 'sawtooth', 0.6, 0.1, 40);
-    requestAnimationFrame(update);
+    document.getElementById('menu').style.display = 'none';
+    document.getElementById('hud').style.display = 'flex';
+    document.getElementById('flash-btn').style.display = 'block';
+    document.getElementById('streak-ui').style.display = 'block';
+    document.getElementById('streak-ui').innerText = 'СЕРИЯ: ' + streak;
+    updateFlashBtn();
+    updateUI();
+    requestAnimationFrame(loop);
 }
 
 function useFlash() {
-    let now = Date.now();
-    if(!gameActive || isPaused || now - lastFlash < hero.cd) return;
-    lastFlash = now; arrowA = 2.5;
-    playSound(150, 'sine', 0.8, 0.4, 600);
-    rings.push({x:p.x, y:p.y, r:0, a:2.2, color: hero.color}); 
-    if(Math.hypot(m.x-p.x, m.y-p.y) < 1300) { m.stun = now + 2000; m.targetX = p.x; m.targetY = p.y; m.mode = 'hunt'; }
+    let now = Date.now(); if(now - lastPulse < h.cd || paused || exorcismActive) return;
+    lastPulse = now;
+    if(hasCross) {
+        let dist = Math.hypot(p.x - m.x, p.y - m.y);
+        if(dist < 350) { triggerExorcism(); }
+        else {
+            rings.push({x:p.x, y:p.y, r:0, a:1.5, c:'#fff', radMult:1.2});
+            m.tx = p.x; m.ty = p.y; m.state = 'hunting';
+        }
+    } else {
+        rings.push({x:p.x, y:p.y, r:0, a:2, c:h.color, radMult: h.isMonk ? 1.6 : 1, decay: h.isPriest ? 0.006 : 0.012});
+        if(h.isDetect) arrowT = Date.now() + 2000;
+        m.tx = p.x; m.ty = p.y; m.state = 'hunting';
+        monsterStunUntil = Date.now() + (isHard ? 1500 : 3000);
+    }
 }
 
-window.addEventListener('pointerdown', e => { if(e.target.tagName !== 'BUTTON' && e.target.tagName !== 'INPUT' && gameActive) { isTouching=true; p.tStart={x:e.clientX, y:e.clientY}; p.tCurr={x:e.clientX, y:e.clientY}; } });
-window.addEventListener('pointermove', e => {
-    if(!isTouching || isPaused) return;
-    p.tCurr = {x:e.clientX, y:e.clientY};
-    let dx = p.tCurr.x - (ctrl==='joy' ? p.tStart.x : window.innerWidth/2);
-    let dy = p.tCurr.y - (ctrl==='joy' ? p.tStart.y : window.innerHeight/2);
-    let d = Math.hypot(dx, dy); if(d>5) move={x:dx/d, y:dy/d};
-});
-window.addEventListener('pointerup', () => { isTouching=false; move={x:0, y:0}; });
+function togglePause(state) {
+    paused = state;
+    document.getElementById('pause-menu').style.display = paused ? 'flex' : 'none';
+    if(!paused) requestAnimationFrame(loop);
+}
 
-function update() {
-    if(!gameActive) return;
-    if(!isPaused) {
-        if(isTouching && (move.x || move.y)) {
-            let vx=move.x*hero.s, vy=move.y*hero.s;
-            if(hero.isGhost || !walls.find(w=>p.x+vx+20>w.x && p.x+vx-20<w.x+w.w && p.y+18>w.y && p.y-18<w.y+w.h)) p.x += vx;
-            if(hero.isGhost || !walls.find(w=>p.x+18>w.x && p.x-18<w.x+w.w && p.y+vy+20>w.y && p.y+vy-20<w.y+w.h)) p.y += vy;
-            if(Date.now()-p.step > hero.noise) { 
-                rings.push({x:p.x, y:p.y, r:0, a:1.0, color: hero.color}); 
-                p.step=Date.now(); playSound(50, 'sine', 0.1, 0.05);
-            }
-            p.lastMove = Date.now(); m.targetX = p.x; m.targetY = p.y; m.mode = 'hunt';
-        }
+function triggerScreamer() {
+    active = false; resetDangerEffects();
+    localStorage.setItem('e_streak', 0); // смерть сбрасывает серию
+    const scr = document.getElementById('screamer');
+    scr.style.display = 'flex';
+    try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(100, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 1);
+        gain.gain.setValueAtTime(volume/100, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 1.2);
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(); osc.stop(audioCtx.currentTime + 1.2);
+    } catch(e) {}
+    let st = Date.now();
+    let si = setInterval(() => {
+        if(Date.now() - st > 1500) { clearInterval(si); location.reload(); return; }
+        scr.style.transform = `translate(${(Math.random()-0.5)*50}px, ${(Math.random()-0.5)*50}px)`;
+    }, 30);
+}
 
-        let dist = Math.hypot(p.x-m.x, p.y-m.y);
-        if(dist < 700) {
-            shakeX = (Math.random()-0.5)*(1-(dist/700))*10;
-            shakeY = (Math.random()-0.5)*(1-(dist/700))*10;
-        } else { shakeX=0; shakeY=0; }
+function priestResurrection() {
+    p.x = 100 + Math.random()*(WORLD_SIZE-200);
+    p.y = 100 + Math.random()*(WORLD_SIZE-200);
+    rings.push({x: p.x, y: p.y, r: 0, a: 2, c: h.color, radMult: 1, decay: 0.006, priestStun: true});
+    monsterStunUntil = Date.now() + 3000;
+    m.state = 'idle';
+    priestLives--;
+}
 
-        if(Date.now() > m.stun) {
-            if(Date.now()-p.lastMove > 1500 && m.mode === 'hunt') {
-                m.mode = 'patrol'; m.targetX = m.x + (Math.random()-0.5)*1500; m.targetY = m.y + (Math.random()-0.5)*1500;
-            }
-            let tx = (dist < 300) ? p.x : m.targetX;
-            let ty = (dist < 300) ? p.y : m.targetY;
-            let d = Math.hypot(tx-m.x, ty-m.y);
-            if(d > 5) {
-                let speed = (m.mode === 'patrol') ? 2.5 : (isHard ? 9.5 : 4.5);
-                m.x += (tx-m.x)/d * speed; m.y += (ty-m.y)/d * speed;
-            }
-            if(dist < 40) {
-                if(p.canRevive) { 
-                    p.canRevive=false; m.stun=Date.now()+5000; rings.push({x:p.x, y:p.y, r:0, a:5, color:'#fff'}); 
-                    playSound(900, 'square', 0.5, 0.3);
-                } else { 
-                    gameActive=false; playSound(100, 'sawtooth', 1.5, 0.5);
-                    document.getElementById('scary-eye').style.display='flex'; 
-                    setTimeout(()=>exitToMenu(), 2500); 
-                }
-            }
-        }
+function winEscape() {
+    if (hasEscapedThisLevel) return;
+    hasEscapedThisLevel = true;
+    active = false;
+    resetDangerEffects();
+    let baseReward = isHard ? 20 : 10;
+    let bonus = 0;
+    if (streak === 10) {
+        bonus = 20;
+    } else if (streak >= 2) {
+        bonus = (streak - 1) * 2;
+    }
+    coins += baseReward + bonus;
+    streak = Math.min(streak + 1, 10);
+    save();
+    document.getElementById('hud').style.display = 'none';
+    document.getElementById('flash-btn').style.display = 'none';
+    document.getElementById('exit-screen').style.display = 'flex';
+    document.getElementById('streak-ui').innerText = 'СЕРИЯ: ' + streak;
+}
 
-        rings.forEach((r, i) => {
-            r.r += 14; r.a -= 0.015; if(r.a <= 0) rings.splice(i, 1);
-            if(Math.hypot(m.x-r.x, m.y-r.y) < r.r) m.a = Math.max(m.a, r.a);
-            if(Math.hypot(ex.x-r.x, ex.y-r.y) < r.r) ex.a = Math.max(ex.a, r.a);
-            walls.forEach(w => { if(Math.hypot(Math.max(w.x, Math.min(r.x, w.x+w.w))-r.x, Math.max(w.y, Math.min(r.y, w.y+w.h))-r.y)<r.r) w.a=Math.max(w.a, r.a); });
+function continueAfterWin() {
+    document.getElementById('exit-screen').style.display = 'none';
+    startGame(isHard);
+}
+
+function triggerExorcism() {
+    active = false; exorcismActive = true; exorcismT = Date.now();
+    exorcismMX = m.x; exorcismMY = m.y;
+    resetDangerEffects();
+    excCanvas.width = window.innerWidth; excCanvas.height = window.innerHeight;
+    excCanvas.style.display = 'block';
+    try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(60, audioCtx.currentTime);
+        osc.frequency.linearRampToValueAtTime(30, audioCtx.currentTime + 3.5);
+        gain.gain.setValueAtTime(0.0, audioCtx.currentTime);
+        gain.gain.linearRampToValueAtTime(volume/200, audioCtx.currentTime + 0.3);
+        gain.gain.linearRampToValueAtTime(0.0, audioCtx.currentTime + 3.5);
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(); osc.stop(audioCtx.currentTime + 3.5);
+    } catch(e) {}
+    animateExorcism();
+}
+
+function animateExorcism() {
+    if(!exorcismActive) return;
+    let elapsed = Date.now() - exorcismT;
+    let t = Math.min(elapsed / EXC_DURATION, 1.0);
+    excCtx.clearRect(0, 0, excCanvas.width, excCanvas.height);
+    let sx = excCanvas.width/2 + (exorcismMX - p.x);
+    let sy = excCanvas.height/2 + (exorcismMY - p.y);
+    if(t < 0.3) {
+        let pt = t / 0.3;
+        excCtx.save();
+        excCtx.globalAlpha = pt * 0.8;
+        excCtx.shadowBlur = 60 * pt;
+        excCtx.shadowColor = '#f00';
+        excCtx.beginPath();
+        excCtx.arc(sx, sy, 20 * pt, 0, Math.PI*2);
+        excCtx.strokeStyle = '#f00'; excCtx.lineWidth = 4;
+        excCtx.stroke();
+        excCtx.restore();
+    }
+    if(t > 0.1 && t < 0.85) {
+        let pt = Math.min((t - 0.1) / 0.6, 1.0);
+        const anchors = [
+            {ax: sx - 160, ay: sy - 120},
+            {ax: sx + 180, ay: sy - 80},
+            {ax: sx + 20,  ay: sy + 200},
+        ];
+        anchors.forEach((anc) => {
+            let cx2 = anc.ax + (sx - anc.ax) * pt;
+            let cy2 = anc.ay + (sy - anc.ay) * pt;
+            excCtx.save();
+            excCtx.globalAlpha = Math.min(pt * 2, 0.9);
+            excCtx.shadowBlur = 15; excCtx.shadowColor = '#f80';
+            excCtx.strokeStyle = '#f80'; excCtx.lineWidth = 3;
+            excCtx.setLineDash([8, 5]);
+            excCtx.lineDashOffset = -elapsed * 0.08;
+            excCtx.beginPath();
+            excCtx.moveTo(anc.ax, anc.ay);
+            excCtx.lineTo(cx2, cy2);
+            excCtx.stroke();
+            excCtx.setLineDash([]);
+            excCtx.beginPath();
+            excCtx.arc(cx2, cy2, 5, 0, Math.PI*2);
+            excCtx.fillStyle = '#fff'; excCtx.shadowColor = '#fff'; excCtx.shadowBlur = 10;
+            excCtx.fill();
+            excCtx.restore();
         });
-        m.a *= 0.95; ex.a *= 0.95; walls.forEach(w=>w.a*=0.95);
-        if(arrowA > 0) arrowA -= 0.02;
-        if(Math.hypot(p.x-ex.x, p.y-ex.y) < 60) { 
-            coins += isHard ? 6 : 3; saveGame();
-            playSound(500, 'sine', 0.6, 0.3, 1500); exitToMenu(); 
+    }
+    let liftY = 0, mScale = 1.0;
+    if(t > 0.55) {
+        let lt = (t - 0.55) / 0.45;
+        liftY = lt * lt * 80;
+        mScale = 1.0 - lt * 0.9;
+    }
+    let portalR = 0;
+    if(t > 0.3) {
+        let pr = (t - 0.3) / 0.7;
+        portalR = pr * pr * 80;
+        excCtx.save();
+        let pulseA = 0.5 + 0.3 * Math.sin(elapsed * 0.015);
+        excCtx.globalAlpha = pulseA;
+        excCtx.shadowBlur = 40 + 20*Math.sin(elapsed*0.01);
+        excCtx.shadowColor = '#f00';
+        excCtx.beginPath();
+        excCtx.arc(sx, sy, portalR + 10, 0, Math.PI*2);
+        excCtx.strokeStyle = 'rgba(255,0,0,0.3)'; excCtx.lineWidth = 20;
+        excCtx.stroke();
+        let grad = excCtx.createRadialGradient(sx, sy, 0, sx, sy, portalR);
+        grad.addColorStop(0, 'rgba(180,0,0,0.9)');
+        grad.addColorStop(0.5, 'rgba(255,50,0,0.6)');
+        grad.addColorStop(1, 'rgba(255,0,0,0)');
+        excCtx.globalAlpha = Math.min((t-0.3)/0.3, 0.8);
+        excCtx.beginPath();
+        excCtx.arc(sx, sy, portalR, 0, Math.PI*2);
+        excCtx.fillStyle = grad;
+        excCtx.fill();
+        for(let i=0; i<6; i++) {
+            let angle = (elapsed * 0.002) + i * Math.PI/3;
+            let rx = sx + Math.cos(angle) * (portalR * 0.8);
+            let ry = sy + Math.sin(angle) * (portalR * 0.8);
+            excCtx.globalAlpha = 0.6;
+            excCtx.shadowBlur = 8; excCtx.shadowColor = '#f00';
+            excCtx.fillStyle = '#f80'; excCtx.font = '14px Courier New';
+            excCtx.textAlign = 'center';
+            excCtx.fillText(['✝','⛧','☠','✞','⊗','☯'][i], rx, ry);
+        }
+        excCtx.restore();
+    }
+    if(mScale > 0.05) {
+        excCtx.save();
+        excCtx.translate(sx, sy - liftY);
+        excCtx.scale(mScale, mScale);
+        excCtx.globalAlpha = mScale;
+        excCtx.shadowBlur = 20; excCtx.shadowColor = '#f00';
+        excCtx.strokeStyle = '#f00'; excCtx.lineWidth = 4;
+        excCtx.strokeRect(-25, -25, 50, 50);
+        if(t > 0.55) {
+            let shk = (1 - mScale) * 8;
+            excCtx.translate((Math.random()-0.5)*shk, (Math.random()-0.5)*shk);
+        }
+        excCtx.restore();
+    }
+    if(t > 0.1 && t < 0.8) {
+        let ci = Math.min((t-0.1)/0.15, 1.0);
+        excCtx.save();
+        excCtx.globalAlpha = ci * 0.9;
+        excCtx.shadowBlur = 30; excCtx.shadowColor = '#fff';
+        excCtx.fillStyle = '#fff';
+        excCtx.font = `bold ${Math.round(36 * ci)}px Courier New`;
+        excCtx.textAlign = 'center';
+        excCtx.fillText('☩', sx, sy - 60 - liftY);
+        excCtx.restore();
+    }
+    if(t > 0.92) {
+        let ft = (t - 0.92) / 0.08;
+        excCtx.save();
+        excCtx.globalAlpha = ft * 0.9;
+        excCtx.fillStyle = '#300';
+        excCtx.fillRect(0, 0, excCanvas.width, excCanvas.height);
+        excCtx.restore();
+    }
+    if(t < 1.0) {
+        requestAnimationFrame(animateExorcism);
+    } else {
+        excCanvas.style.display = 'none';
+        exorcismActive = false;
+        hasCross = false;
+        save();
+        document.getElementById('hud').style.display = 'none';
+        document.getElementById('flash-btn').style.display = 'none';
+        document.getElementById('win-screen').style.display = 'flex';
+    }
+}
+
+function showConfirmReset() {
+    document.getElementById('win-screen').style.display = 'none';
+    document.getElementById('confirm-screen').style.display = 'flex';
+}
+function doFinalReset() { localStorage.clear(); location.reload(); }
+function cancelReset() {
+    document.getElementById('confirm-screen').style.display = 'none';
+    document.getElementById('win-screen').style.display = 'flex';
+}
+
+function updateScreenShake(dist) {
+    if(dist < 700) {
+        let intensity = Math.pow(1 - dist / 700, 2.2);
+        if (Math.abs(intensity - dangerIntensity) > 0.001) {
+            dangerIntensity = intensity;
+            document.getElementById('danger-vignette').style.background = `radial-gradient(ellipse at center, transparent 30%, rgba(255,0,0,${intensity * 0.75}) 100%)`;
+            document.getElementById('danger-vignette').style.opacity = '1';
+            document.body.style.filter = dist < 150 ? `brightness(${1 + intensity * 0.4})` : '';
+        }
+    } else if (dangerIntensity > 0) {
+        dangerIntensity = 0;
+        shakeX = 0; shakeY = 0;
+        document.getElementById('danger-vignette').style.opacity = '0';
+        document.body.style.filter = '';
+    }
+}
+
+function isWallVisible(w, camX, camY, viewW, viewH, margin = 200) {
+    return (w.x + w.w >= camX - margin) && (w.x <= camX + viewW + margin) &&
+           (w.y + w.h >= camY - margin) && (w.y <= camY + viewH + margin);
+}
+
+function loop() {
+    if(!active || paused || exorcismActive) return;
+    if(touch) {
+        if(controlMode === 'follow') {
+            let dx = lastTouchPos.x - canvas.width/2;
+            let dy = lastTouchPos.y - canvas.height/2;
+            let dist = Math.hypot(dx, dy);
+            if(dist > 20) {
+                move = {x: dx/dist, y: dy/dist};
+                playerAngle = Math.atan2(dy, dx);
+            }
+            else move = {x: 0, y: 0};
+        }
+        let nx = p.x + move.x * h.s;
+        let ny = p.y + move.y * h.s;
+        let half = h.size + 6;
+        if(nx > 20 && nx < WORLD_SIZE-20) {
+            if(!h.isGhost) {
+                let hitX = walls.find(w => nx+half > w.x && nx-half < w.x+w.w && p.y+half > w.y && p.y-half < w.y+w.h);
+                if(!hitX) p.x = nx;
+            } else p.x = nx;
+        }
+        if(ny > 20 && ny < WORLD_SIZE-20) {
+            if(!h.isGhost) {
+                let hitY = walls.find(w => p.x+half > w.x && p.x-half < w.x+w.w && ny+half > w.y && ny-half < w.y+w.h);
+                if(!hitY) p.y = ny;
+            } else p.y = ny;
+        }
+        if(Date.now() - p.step > h.noise) {
+            rings.push({x:p.x, y:p.y, r:0, a:0.7, c: h.color, radMult:0.8, decay: 0.012});
+            p.step = Date.now();
+            m.tx = p.x; m.ty = p.y; m.state = 'hunting';
         }
     }
-
-    ctx.fillStyle='#000'; ctx.fillRect(0,0,canvas.width,canvas.height);
-    ctx.save(); ctx.translate(shakeX, shakeY);
-    ctx.save(); ctx.translate(-p.x+canvas.width/2, -p.y+canvas.height/2);
-    walls.forEach(w => { if(w.a>0.05) { ctx.globalAlpha=w.a; ctx.fillStyle='#030'; ctx.fillRect(w.x, w.y, w.w, w.h); } });
-    if(ex.a > 0.05) { ctx.globalAlpha=ex.a; ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(ex.x, ex.y, 45, 0, 6.28); ctx.fill(); }
-    if(m.a > 0.05) { ctx.globalAlpha=m.a; ctx.fillStyle = Date.now() < m.stun ? '#fff' : '#f00'; ctx.fillRect(m.x-25, m.y-25, 50, 50); }
-    ctx.globalAlpha=1;
-    rings.forEach(r => { ctx.beginPath(); ctx.arc(r.x, r.y, r.r, 0, 6.28); ctx.strokeStyle = r.color; ctx.lineWidth = 1; ctx.stroke(); });
-    ctx.fillStyle = hero.color; ctx.beginPath();
-    if(hero.shape === 'square') ctx.rect(p.x-20, p.y-20, 40, 40);
-    else if(hero.shape === 'star') { for(let i=0; i<10; i++) { let r = i%2===0?20:10; ctx.lineTo(p.x+Math.cos(i*Math.PI/5)*r, p.y+Math.sin(i*Math.PI/5)*r); } }
-    else if(hero.shape === 'rhombus') { ctx.moveTo(p.x, p.y-25); ctx.lineTo(p.x+20, p.y); ctx.lineTo(p.x, p.y+25); ctx.lineTo(p.x-20, p.y); }
-    else ctx.arc(p.x, p.y, 20, 0, 6.28);
-    ctx.fill();
-    ctx.restore(); ctx.restore();
-
-    let cd = Math.min(1, (Date.now() - lastFlash) / hero.cd);
-    document.getElementById('flash-fill').style.height = (cd * 100) + '%';
-    document.getElementById('cd-txt').innerText = cd >= 1 ? 'ГОТОВ' : ((hero.cd - (Date.now()-lastFlash))/1000).toFixed(1) + 's';
-    if(gameActive) requestAnimationFrame(update);
+    if (monsterStunUntil <= Date.now()) {
+        let dm = Math.hypot(m.tx-m.x, m.ty-m.y);
+        if(m.state === 'hunting' && dm > 5) {
+            let spd = isHard ? 6.0 : 4.6;
+            m.x += (m.tx-m.x)/dm*spd;
+            m.y += (m.ty-m.y)/dm*spd;
+        }
+    }
+    let distToMonster = Math.hypot(p.x-m.x, p.y-m.y);
+    updateScreenShake(distToMonster);
+    let deathDist = 25 + h.size + 8;
+    if(distToMonster < deathDist) {
+        if(h.isPriest && priestLives > 1) {
+            priestResurrection();
+        } else {
+            resetDangerEffects();
+            triggerScreamer();
+            return;
+        }
+    }
+    if(Math.hypot(p.x-exit.x, p.y-exit.y) < 60 && !hasEscapedThisLevel) {
+        winEscape();
+        return;
+    }
+    rings.forEach((r, i) => {
+        r.r += 10*(r.radMult||1);
+        r.a -= (r.decay || 0.012);
+        if (r.priestStun) {
+            if(Math.hypot(m.x-r.x, m.y-r.y) < r.r) m.a = r.a;
+        } else {
+            if(Math.hypot(m.x-r.x, m.y-r.y) < r.r) m.a = r.a;
+            if(Math.hypot(exit.x-r.x, exit.y-r.y) < r.r) exit.a = r.a;
+            walls.forEach(w => { if(Math.hypot(w.x-r.x, w.y-r.y) < r.r) w.a = r.a; });
+        }
+        if(r.a <= 0) rings.splice(i, 1);
+    });
+    if(dangerIntensity > 0) {
+        let mag = dangerIntensity * 18;
+        shakeX = (Math.random()-0.5)*2*mag;
+        shakeY = (Math.random()-0.5)*2*mag;
+    }
+    draw();
+    requestAnimationFrame(loop);
 }
 
-function exitToMenu() { 
-    gameActive=false; document.getElementById('menu').style.display='flex'; 
-    document.getElementById('hud').style.display='none'; document.getElementById('flash-btn').style.display='none';
-    document.getElementById('scary-eye').style.display='none'; updateUI();
+function draw() {
+    ctx.fillStyle = '#000'; ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.save();
+    let camX = p.x - canvas.width/2;
+    let camY = p.y - canvas.height/2;
+    ctx.translate(-camX + shakeX, -camY + shakeY);
+    ctx.strokeStyle = '#0a0a0a'; ctx.beginPath();
+    for(let x=0; x<=WORLD_SIZE; x+=200) { ctx.moveTo(x,0); ctx.lineTo(x,WORLD_SIZE); }
+    for(let y=0; y<=WORLD_SIZE; y+=200) { ctx.moveTo(0,y); ctx.lineTo(WORLD_SIZE,y); }
+    ctx.stroke();
+    ctx.shadowBlur=15; ctx.shadowColor=h.color;
+    ctx.strokeStyle=h.color; ctx.lineWidth=4; ctx.strokeRect(0,0,WORLD_SIZE,WORLD_SIZE);
+    ctx.shadowBlur=0;
+    walls.forEach(w => {
+        if (!isWallVisible(w, camX, camY, canvas.width, canvas.height)) return;
+        let isVisible = w.a > 0 || h.isHacker || touch;
+        if(isVisible) {
+            let opacity = w.a > 0 ? w.a : (touch ? 0.15 : 0);
+            if(h.isHacker) opacity = 0.2;
+            ctx.save();
+            ctx.globalAlpha = opacity;
+            ctx.shadowBlur=20; ctx.shadowColor='#0f0';
+            ctx.fillStyle='rgba(0,255,0,0.1)'; ctx.fillRect(w.x,w.y,w.w,w.h);
+            ctx.strokeStyle='#0f0'; ctx.lineWidth=2; ctx.strokeRect(w.x,w.y,w.w,w.h);
+            ctx.restore();
+        }
+    });
+    let showMonster = m.a > 0 || (h.isRadar && Math.hypot(p.x-m.x,p.y-m.y)<450) || monsterStunUntil > Date.now();
+    if(showMonster) {
+        ctx.save();
+        let isStunned = monsterStunUntil > Date.now();
+        ctx.globalAlpha = isStunned ? 1.0 : (h.isRadar ? 0.4 : m.a);
+        ctx.shadowBlur=15;
+        ctx.shadowColor= isStunned ? '#fff' : '#f00';
+        ctx.strokeStyle= isStunned ? '#fff' : '#f00';
+        ctx.lineWidth=4;
+        ctx.strokeRect(m.x-25,m.y-25,50,50);
+        ctx.restore();
+    }
+    if(exit.a > 0 || touch) {
+        ctx.save();
+        ctx.globalAlpha = exit.a > 0 ? exit.a : (touch ? 0.1 : 0);
+        ctx.shadowBlur=20; ctx.shadowColor='#fff';
+        ctx.strokeStyle='#fff'; ctx.beginPath(); ctx.arc(exit.x,exit.y,40,0,7); ctx.stroke();
+        ctx.restore();
+    }
+    rings.forEach(r => {
+        ctx.save();
+        ctx.globalAlpha=r.a; ctx.beginPath(); ctx.arc(r.x,r.y,r.r,0,7);
+        ctx.strokeStyle=r.c; ctx.lineWidth=2;
+        ctx.shadowBlur=10; ctx.shadowColor=r.c;
+        ctx.stroke(); ctx.restore();
+    });
+    ctx.save();
+    ctx.translate(p.x, p.y);
+    ctx.rotate(playerAngle);
+    ctx.shadowBlur=15; ctx.shadowColor=h.color;
+    ctx.globalAlpha=1; ctx.strokeStyle=h.color; ctx.lineWidth=2;
+    ctx.strokeRect(-h.size, -h.size, h.size*2, h.size*2);
+    ctx.restore();
+    if(hasCross) {
+        ctx.save();
+        ctx.globalAlpha = 0.7; ctx.shadowBlur=10; ctx.shadowColor='#fff';
+        ctx.fillStyle='#fff'; ctx.font='16px Courier New'; ctx.textAlign='center';
+        ctx.fillText('☩', p.x, p.y-20);
+        ctx.restore();
+    }
+    ctx.restore();
+    if(Date.now() < arrowT) {
+        ctx.save(); ctx.translate(canvas.width/2, canvas.height/2);
+        ctx.rotate(Math.atan2(exit.y-p.y, exit.x-p.x));
+        ctx.strokeStyle='#ff0'; ctx.lineWidth=3; ctx.shadowBlur=10; ctx.shadowColor='#ff0';
+        ctx.beginPath(); ctx.moveTo(60,0); ctx.lineTo(40,-15); ctx.lineTo(40,15); ctx.closePath(); ctx.stroke();
+        ctx.restore();
+    }
+    let cd = Math.min(1, (Date.now()-lastPulse)/h.cd);
+    document.getElementById('flash-fill').style.height = (cd*100)+'%';
+    document.getElementById('cd-text').innerText = cd >= 1 ? 'ГОТОВ' : ((h.cd-(Date.now()-lastPulse))/1000).toFixed(1);
 }
 
-function showCreepyText() {
-    if(!gameActive || isPaused) return;
-    const el = document.getElementById('creepy-text');
-    el.innerText = ["ОНО ТЕБЯ ВИДИТ", "БЕГИ", "НЕ ОБОРАЧИВАЙСЯ", "ОНО БЛИЗКО", "Я ВИЖУ ТВОЙ СВЕТ"][Math.floor(Math.random()*5)];
-    el.style.opacity = 0.8;
-    playSound(40, 'sine', 1, 0.2);
-    setTimeout(() => { el.style.opacity = 0; }, 2000);
+function updateUI() {
+    document.getElementById('wallet').innerText = "КРЕДИТЫ: " + coins;
+    document.getElementById('stats-ui').innerText = "СЧЕТ: " + coins;
+    document.getElementById('menu-streak').innerText = streak > 0 ? 'СЕРИЯ ПОБЕД: ' + streak : '';
 }
+function resetData() { if(confirm('СБРОСИТЬ?')) { localStorage.clear(); location.reload(); } }
 
-window.onresize = () => { canvas.width=window.innerWidth; canvas.height=window.innerHeight; }; window.onresize();
-updateUI(); setInterval(showCreepyText, 7000);
+Object.assign(window, {
+    togglePause, startGame, openOverlay, closeOverlays, toggleFullScreen,
+    toggleControlMode, changeVolume, resetData, selectHero, buyCross,
+    useFlash, showConfirmReset, doFinalReset, cancelReset, goToMenu,
+    continueAfterWin
+});
+
+window.onpointerdown = (e) => {
+    if(e.target.closest('button') || e.target.closest('input') || e.target.closest('.hero-card')) return;
+    if(!active || paused || exorcismActive) return;
+    e.preventDefault();
+    canvas.setPointerCapture(e.pointerId);
+    touch = true; lastTouchPos = {x:e.clientX, y:e.clientY};
+    if(controlMode === 'joystick') {
+        document.getElementById('joystick-base').style.display = 'block';
+        document.getElementById('joystick-base').style.left = e.clientX-40+'px';
+        document.getElementById('joystick-base').style.top = e.clientY-40+'px';
+    }
+};
+window.onpointermove = (e) => {
+    if(!touch || paused) return;
+    e.preventDefault();
+    lastTouchPos = {x:e.clientX, y:e.clientY};
+    if(controlMode === 'joystick') {
+        let b = document.getElementById('joystick-base');
+        let dx = e.clientX - (parseInt(b.style.left)+40);
+        let dy = e.clientY - (parseInt(b.style.top)+40);
+        let d = Math.max(1, Math.hypot(dx,dy));
+        move = {x:dx/d, y:dy/d};
+        playerAngle = Math.atan2(dy, dx);
+        document.getElementById('joystick-stick').style.transform = `translate(${move.x*20}px, ${move.y*20}px)`;
+    }
+};
+window.onpointerup = (e) => {
+    touch = false; move = {x:0,y:0};
+    document.getElementById('joystick-base').style.display='none';
+    canvas.releasePointerCapture(e.pointerId);
+};
+canvas.addEventListener('pointerleave', () => {
+    if(touch) { touch = false; move = {x:0,y:0}; document.getElementById('joystick-base').style.display='none'; }
+});
+window.onresize = () => {
+    canvas.width=window.innerWidth; canvas.height=window.innerHeight;
+    excCanvas.width=window.innerWidth; excCanvas.height=window.innerHeight;
+};
+window.onresize(); updateUI();
+})();
 </script>
 </body>
-  </html>
+</html>
