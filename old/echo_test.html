@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ECHO 2.0: TOTAL ARSENAL</title>
+    <title>тестовая версия</title>
     <style>
         :root { --color: #0f0; --bg: #000; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
@@ -108,7 +108,7 @@
 </div>
 
 <div id="menu" class="overlay">
-    <h1 style="letter-spacing:15px; margin:0; text-shadow:0 0 20px var(--color);">ECHO 2.0</h1>
+    <h1 style="letter-spacing:15px; margin:0; text-shadow:0 0 20px var(--color);">ECHO 2.0 тестовая версия</h1>
     <div id="wallet" style="margin:15px 0; font-size:13px;">КРЕДИТЫ: 0</div>
     <div id="shards-display" style="color:#a0f; font-size:13px; margin-bottom:5px;">ОСКОЛКИ: 0</div>
     <div id="menu-streak" style="color:#ff0; font-size:11px; margin-bottom:20px; letter-spacing:2px;"></div>
@@ -309,9 +309,9 @@ const heroes = [
     { id: 'ghost', name: 'ПРИЗРАК', price: 850, s: 8.0, noise: 500, cd: 5000, size:12, isGhost: true, color: '#fff', desc: 'Легендарный дух. Проходит сквозь стены.', statLabel: 'СКР: ●●●●○  ШУМ: ●●●○○  КД: ●●○○○', isLegendary: true },
     { id: 'god', name: 'СОБИРАТЕЛЬ ЭХА', price: 1500, s:11.0, noise: 100, cd: 500, size:12, color: '#f00', desc: 'Легендарный класс.', statLabel: 'СКР: ●●●●●  ШУМ: ●●●●●  КД: ●●●●●', isLegendary: true },
     { id: 'rodya_coder', name: 'РОДЯ КОДЕР', price: 9999, s: 8.0, noise: 400, cd: 0, size:12,
-      color: '#00ffff', desc: 'Создатель игры. Режим Разработчика на 10 сек.', statLabel: 'СКР: ●●●●○  ШУМ: ●●●○○  КД СПОС: 60с', isSecret: true },
+      color: '#00ffff', desc: 'Создатель игры. Режим Разработчика на 10 сек.', statLabel: 'СКР: ●●●●○  ШУМ: ●●●○○  КД СПОС: 60с', isSecret: false },
     { id: 'pidor_fghfopa', name: 'fghfopa', price: 9999, s: 6.0, noise: 400, cd: 0, size:12,
-      color: '#ffefd5', desc: 'цвет настроения коричневый', statLabel: 'СКР: ●●○○○  ШУМ: ●●●○○  КД СПОС: 45с', isSecret: true }
+      color: '#ffefd5', desc: 'цвет настроения коричневый', statLabel: 'СКР: ●●○○○  ШУМ: ●●●○○  КД СПОС: 45с', isSecret: false }
 ];
 
 let h = heroes.find(x => x.id === curHero) || heroes[0];
@@ -451,8 +451,7 @@ function renderShop() {
         const priceLabel = isOwned ? (isSel ? '✓ ВЫБРАН' : 'КУПЛЕНО') : item.price + ' ₡';
         const legendary = item.isLegendary || item.price >= 800;
         const cardStyle = legendary
-            ? 'border: 2px solid #ffd700; box-shadow: 0 0 15px #ffd700;'
-            : `--card-color:${item.color}; color:${item.color};`;
+            ? 'border: 2px solid #ffd700; box-shadow: 0 0 15px #ffd700;`
         const legendBadge = legendary ? '<span style="color:#ffd700; font-size:9px; margin-left:5px;">👑 ЛЕГЕНДАРНЫЙ</span>' : '';
         list.innerHTML += `
         <div class="hero-card" style="${cardStyle} ${isSel ? 'border-width:3px;' : ''}" onclick="selectHero('${item.id}')">
