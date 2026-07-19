@@ -210,7 +210,6 @@
 <canvas id="gameCanvas"></canvas>
 
 <script>
-(function() {
 const WORLD_SIZE = 3500;
 let coins = parseInt(localStorage.getItem('e_c')) || 0;
 let owned = JSON.parse(localStorage.getItem('e_o')) || ['def'];
@@ -311,8 +310,8 @@ const heroes = [
     { id: 'god', name: 'СОБИРАТЕЛЬ ЭХА', price: 1500, s:11.0, noise: 100, cd: 500, size:12, color: '#f00', desc: 'Легендарный класс.', statLabel: 'СКР: ●●●●●  ШУМ: ●●●●●  КД: ●●●●●', isLegendary: true },
     { id: 'rodya_coder', name: 'РОДЯ КОДЕР', price: 9999, s: 8.0, noise: 400, cd: 0, size:12,
       color: '#00ffff', desc: 'Создатель игры. Режим Разработчика на 10 сек.', statLabel: 'СКР: ●●●●○  ШУМ: ●●●○○  КД СПОС: 60с', isSecret: true },
-    { id: 'hacker_fghfopa', name: 'ХАКЕР FGHFOPA', price: 9999, s: 6.0, noise: 400, cd: 0, size:12,
-      color: '#0a0', desc: 'Взломщик реальности.', statLabel: 'СКР: ●●○○○  ШУМ: ●●●○○  КД СПОС: 45с', isSecret: true }
+    { id: 'pidor_fghfopa', name: 'fghfopa', price: 9999, s: 6.0, noise: 400, cd: 0, size:12,
+      color: '#ffefd5', desc: 'цвет настроения коричневый', statLabel: 'СКР: ●●○○○  ШУМ: ●●●○○  КД СПОС: 45с', isSecret: true }
 ];
 
 let h = heroes.find(x => x.id === curHero) || heroes[0];
@@ -489,7 +488,7 @@ function updateFlashBtn() {
     let label = 'ИМПУЛЬС';
     if (hasCross) label = '☩';
     else if (h.id === 'rodya_coder') label = 'DEV MODE';
-    else if (h.id === 'hacker_fghfopa') label = 'ВЗЛОМ';
+    else if (h.id === 'pidor_fghfopa') label = 'КОРИЧНЕВЫЙ ГЛАЗ';
     document.getElementById('btn-label').innerText = label;
 }
 
@@ -644,8 +643,7 @@ function useActiveItem() {
     return true;
 }
 
-const originalHandleAction = handleAction;
-handleAction = function() {
+function handleAction() {
     if (!active || paused || exorcismActive) return;
     if (gameActiveItem && !hasCross && h.id !== 'rodya_coder' && h.id !== 'hacker_fghfopa') {
         let item = items.find(i => i.id === gameActiveItem);
@@ -955,6 +953,18 @@ function updateScreenShake(dist) {
     }
 }
 
+function resetDangerEffects() {
+    dangerIntensity = 0;
+    shakeX = 0;
+    shakeY = 0;
+    const vignette = document.getElementById('danger-vignette');
+    if (vignette) {
+        vignette.style.opacity = '0';
+        vignette.style.background = '';
+    }
+    document.body.style.filter = '';
+}
+
 function isWallVisible(w, camX, camY, viewW, viewH, margin = 200) {
     return (w.x + w.w >= camX - margin) && (w.x <= camX + viewW + margin) &&
            (w.y + w.h >= camY - margin) && (w.y <= camY + viewH + margin);
@@ -1241,7 +1251,7 @@ function openChest() {
                 let roll = Math.random();
                 if (roll < 0.65) {
                     if (Math.random() < 0.5) { reward = 'rodya_coder'; if (!owned.includes('rodya_coder')) owned.push('rodya_coder'); }
-                    else { reward = 'hacker_fghfopa'; if (!owned.includes('hacker_fghfopa')) owned.push('hacker_fghfopa'); }
+                    else { reward = 'pidor_fghfopa'; if (!owned.includes('pidor_fghfopa')) owned.push('pidor_fghfopa'); }
                 } else if (roll < 0.9) { reward = 'god'; if (!owned.includes('god')) owned.push('god'); }
                 else { let sp = skinShopData.filter(s=>s.rarity>=4); if(sp.length){let c=sp[Math.floor(Math.random()*sp.length)]; reward=c.id; ownedSkins[c.id]=true;} }
                 shardReward = 300; coinReward = 40;
@@ -1301,7 +1311,7 @@ canvas.addEventListener('pointerleave', () => { if(touch) { touch = false; move 
 window.onresize = () => { canvas.width=window.innerWidth; canvas.height=window.innerHeight; excCanvas.width=window.innerWidth; excCanvas.height=window.innerHeight; };
 document.getElementById('crate-box').addEventListener('click', clickCrate);
 window.onresize(); updateUI(); checkDailyButton();
-})();
+// 3. REMOVED: })();
 </script>
 </body>
 </html>
