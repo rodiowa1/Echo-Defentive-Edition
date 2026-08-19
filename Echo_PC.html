@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ECHO 2.0: TOTAL ARSENAL</title>
+    <title>ECHO 2.0: TOTAL ARSENAL (PC EDITION)</title>
     <style>
         :root { --color: #0f0; --bg: #000; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
         body { margin: 0; overflow: hidden; background: var(--bg); font-family: 'Courier New', monospace; touch-action: none; color: var(--color); }
-        canvas { display: block; width: 100vw; height: 100vh; position: absolute; z-index: 1; }
+        canvas { display: block; width: 100vw; height: 100vh; position: absolute; z-index: 1; cursor: crosshair; }
         .btn {
             padding: 10px; background: rgba(0,0,0,0.7); color: var(--color); border: 1px solid var(--color);
             font-size: 11px; cursor: pointer; margin: 4px; width: 280px; max-width: 300px; text-transform: uppercase;
@@ -33,7 +33,7 @@
             position: fixed; bottom: 30px; right: 30px; width: 85px; height: 85px;
             border-radius: 50%; border: 2px solid var(--color); background: rgba(0,0,0,0.5);
             color: var(--color); z-index: 1000; display: none; font-size: 10px; overflow: hidden;
-            box-shadow: 0 0 15px var(--color);
+            box-shadow: 0 0 15px var(--color); cursor: pointer;
         }
         #flash-fill { position: absolute; bottom: 0; left: 0; width: 100%; background: var(--color); opacity: 0.4; transition: height 0.1s; z-index: -1; }
         #joystick-base { position: fixed; width: 80px; height: 80px; border: 1px solid rgba(0,255,0,0.3); border-radius: 50%; display: none; pointer-events: none; z-index: 1500; }
@@ -94,6 +94,41 @@
         .item-card, .totem-card { width: 280px; margin: 8px auto; background: rgba(0,0,0,0.7); border: 1px solid #aaa; padding: 12px; cursor: pointer; text-align: left; font-size:11px; }
         .item-card:active, .totem-card:active { background: rgba(255,255,255,0.1); }
         .item-active { border-color: #0f0; box-shadow: 0 0 10px #0f0; }
+        .controls-hint {
+            position: fixed; bottom: 120px; left: 20px;
+            color: #aaa; font-size: 12px; letter-spacing: 1px;
+            background: rgba(0,0,0,0.6); padding: 8px 14px;
+            border: 1px solid #1a1a1a; border-radius: 6px;
+            z-index: 600; pointer-events: none;
+            display: none;
+        }
+        .controls-hint span { color: #0f0; font-weight: bold; }
+        /* Стили для оптимизации */
+        .opt-section {
+            color: #ffaa00; font-size: 14px; margin-top: 20px;
+            letter-spacing: 3px; border-top: 1px solid #333;
+            padding-top: 15px; width: 280px;
+        }
+        .opt-item {
+            margin: 12px 0; width: 280px; text-align: left;
+            font-size: 11px; text-transform: uppercase;
+        }
+        .opt-item input[type=range] {
+            width: 100%; accent-color: #ffaa00; cursor: pointer;
+            margin-top: 3px; background: transparent;
+        }
+        .opt-item button {
+            width: 100%; background: rgba(0,0,0,0.7);
+            color: #ffaa00; border: 1px solid #ffaa00;
+            padding: 6px; cursor: pointer; border-radius: 4px;
+            margin-top: 4px; font-size: 11px; text-transform: uppercase;
+            transition: 0.2s;
+        }
+        .opt-item button:hover { background: #ffaa00; color: #000; }
+        .opt-label {
+            display: flex; justify-content: space-between;
+            color: #aaa;
+        }
     </style>
 </head>
 <body>
@@ -104,11 +139,17 @@
         <div id="stats-ui" style="border:1px solid var(--color); padding:8px; font-size:11px; background:rgba(0,0,0,0.8); box-shadow:0 0 10px var(--color);">СЧЕТ: 0</div>
         <div id="streak-ui" style="margin-top:4px;">СЕРИЯ: 0</div>
     </div>
-    <button class="btn" style="width:auto;" onclick="togglePause(true)">ПАУЗА</button>
+    <div style="display:flex; gap:10px; align-items:center;">
+        <div class="controls-hint" id="controls-hint">
+            <span>W A S D</span> / <span>↑ ← ↓ →</span> — движение &nbsp;|&nbsp; <span>ПРОБЕЛ</span> / <span>ЛКМ</span> — импульс
+        </div>
+        <button class="btn" style="width:auto;" onclick="togglePause(true)">ПАУЗА</button>
+    </div>
 </div>
 
 <div id="menu" class="overlay">
     <h1 style="letter-spacing:15px; margin:0; text-shadow:0 0 20px var(--color);">ECHO 2.0</h1>
+    <div style="color:#888; font-size:12px; margin-bottom:5px;">ПК-ВЕРСИЯ</div>
     <div id="wallet" style="margin:15px 0; font-size:13px;">КРЕДИТЫ: 0</div>
     <div id="shards-display" style="color:#a0f; font-size:13px; margin-bottom:5px;">ОСКОЛКИ: 0</div>
     <div id="menu-streak" style="color:#ff0; font-size:11px; margin-bottom:20px; letter-spacing:2px;"></div>
@@ -162,8 +203,37 @@
 <div id="settings" class="overlay" style="display:none;">
     <div style="font-size:16px; margin-bottom:20px;">НАСТРОЙКИ</div>
     <button class="btn" onclick="toggleFullScreen()">ПОЛНОЭКРАННЫЙ РЕЖИМ</button>
-    <div class="setting-item">УПРАВЛЕНИЕ: <button class="btn" id="ctrl-mode-btn" onclick="toggleControlMode()" style="width:100%; margin:5px 0;">ДЖОЙСТИК</button></div>
+    <div class="setting-item">УПРАВЛЕНИЕ: <button class="btn" id="ctrl-mode-btn" onclick="toggleControlMode()" style="width:100%; margin:5px 0;">КЛАВИАТУРА</button></div>
     <div class="setting-item">ГРОМКОСТЬ: <span id="vol-val">50%</span><input type="range" min="0" max="100" value="50" oninput="changeVolume(this.value)"></div>
+
+    <!-- БЛОК ОПТИМИЗАЦИИ -->
+    <div class="opt-section">⚡ ОПТИМИЗАЦИЯ</div>
+
+    <div class="opt-item">
+        <div class="opt-label"><span>Масштаб рендеринга</span><span id="render-scale-label">0.5</span></div>
+        <input type="range" min="25" max="100" value="50" id="render-scale-slider" oninput="applyRenderScale(this.value/100)">
+    </div>
+
+    <div class="opt-item">
+        <div class="opt-label"><span>Количество стен</span><span id="wall-count-label">50</span></div>
+        <input type="range" min="15" max="80" value="50" id="wall-count-slider" oninput="applyWallCount(this.value)">
+    </div>
+
+    <div class="opt-item">
+        <div class="opt-label"><span>Макс. колец</span><span id="ring-limit-label">30</span></div>
+        <input type="range" min="10" max="60" value="30" id="ring-limit-slider" oninput="applyRingLimit(this.value)">
+    </div>
+
+    <div class="opt-item">
+        <div style="display:flex; justify-content:space-between; color:#aaa;"><span>Тени</span><span id="shadow-status">ВКЛ</span></div>
+        <button onclick="toggleShadows()">ВКЛ/ВЫКЛ</button>
+    </div>
+
+    <div class="opt-item">
+        <div style="display:flex; justify-content:space-between; color:#aaa;"><span>Ограничение FPS</span><span id="fps-limit-label">60</span></div>
+        <button onclick="toggleFpsLimit()">СМЕНИТЬ</button>
+    </div>
+
     <button class="btn" onclick="resetData()" style="border-color:#f00; color:#f00; margin-top:20px;">СБРОСИТЬ ПРОГРЕСС</button>
     <button class="btn" onclick="closeOverlays()">НАЗАД</button>
 </div>
@@ -210,11 +280,15 @@
 <canvas id="gameCanvas"></canvas>
 
 <script>
+// ============================================================
+// ПОЛНЫЙ КОД ИГРЫ ECHO 2.0 ДЛЯ ПК С НАСТРОЙКАМИ ОПТИМИЗАЦИИ
+// ============================================================
+
 const WORLD_SIZE = 3500;
 let coins = parseInt(localStorage.getItem('e_c')) || 0;
 let owned = JSON.parse(localStorage.getItem('e_o')) || ['def'];
 let curHero = localStorage.getItem('e_h') || 'def';
-let controlMode = localStorage.getItem('e_ctrl') || 'joystick';
+let controlMode = localStorage.getItem('e_ctrl') || 'keyboard';
 let volume = parseInt(localStorage.getItem('e_vol')) || 50;
 let streak = parseInt(localStorage.getItem('e_streak')) || 0;
 let echoShards = parseInt(localStorage.getItem('e_shards')) || 0;
@@ -226,10 +300,23 @@ let inventoryTotems = JSON.parse(localStorage.getItem('e_invTotems')) || [];
 let activeItem = JSON.parse(localStorage.getItem('e_actItem')) || null;
 let activeTotem = JSON.parse(localStorage.getItem('e_actTotem')) || null;
 
+// ========== НАСТРОЙКИ ПРОИЗВОДИТЕЛЬНОСТИ ==========
+let renderScale = parseFloat(localStorage.getItem('e_renderScale')) || 0.5;
+let maxWalls = parseInt(localStorage.getItem('e_maxWalls')) || 50;
+let maxRings = parseInt(localStorage.getItem('e_maxRings')) || 30;
+let shadowsEnabled = localStorage.getItem('e_shadows') !== 'false';
+let fpsLimit = parseInt(localStorage.getItem('e_fpsLimit')) || 60;
+let lastFrameTime = 0;
+let frameCount = 0;
+let lastFpsUpdate = 0;
+
+// ============================================================
 let isFromPause = false;
 let shakeX = 0, shakeY = 0, dangerIntensity = 0;
 let exorcismActive = false, exorcismT = 0, exorcismMX = 0, exorcismMY = 0;
 const EXC_DURATION = 3500;
+
+let keys = {};
 
 function generateSkins() {
     const skins = [];
@@ -350,6 +437,7 @@ let gameActiveItem = null;
 let gameActiveTotem = null;
 let itemUsedThisRound = false;
 
+// ========== ФУНКЦИИ СОХРАНЕНИЯ ==========
 function save() {
     localStorage.setItem('e_c', coins);
     localStorage.setItem('e_o', JSON.stringify(owned));
@@ -367,6 +455,7 @@ function save() {
     localStorage.setItem('e_actTotem', JSON.stringify(activeTotem));
 }
 
+// ========== ФУНКЦИИ ДНЕВНЫХ НАГРАД И СКИНОВ ==========
 function getTodayDate() {
     const d = new Date();
     d.setHours(d.getHours() + 3);
@@ -423,8 +512,22 @@ function toggleFullScreen() {
     else if (document.exitFullscreen) document.exitFullscreen();
 }
 function changeVolume(v) { volume = v; document.getElementById('vol-val').innerText = v + "%"; save(); }
-function toggleControlMode() { controlMode = (controlMode === 'joystick' ? 'follow' : 'joystick'); document.getElementById('ctrl-mode-btn').innerText = controlMode.toUpperCase(); save(); }
+function toggleControlMode() {
+    if (controlMode === 'keyboard') {
+        controlMode = 'joystick';
+        document.getElementById('ctrl-mode-btn').innerText = 'ДЖОЙСТИК';
+    } else if (controlMode === 'joystick') {
+        controlMode = 'follow';
+        document.getElementById('ctrl-mode-btn').innerText = 'СЛЕЖЕНИЕ';
+    } else {
+        controlMode = 'keyboard';
+        document.getElementById('ctrl-mode-btn').innerText = 'КЛАВИАТУРА';
+    }
+    save();
+    document.getElementById('controls-hint').style.display = (controlMode === 'keyboard') ? 'block' : 'none';
+}
 
+// ========== ОТКРЫТИЕ / ЗАКРЫТИЕ ОВЕРЛЕЕВ ==========
 function openOverlay(id, fromPause = false) {
     isFromPause = fromPause;
     document.querySelectorAll('.overlay').forEach(el => el.style.display = 'none');
@@ -433,6 +536,7 @@ function openOverlay(id, fromPause = false) {
     if(id === 'skinShop') renderSkinShop();
     if(id === 'itemShop') renderItemShop();
     if(id === 'inventory') renderInventory();
+    if(id === 'settings') loadOptimizationUI();
 }
 function closeOverlays() {
     document.querySelectorAll('.overlay').forEach(el => el.style.display = 'none');
@@ -442,6 +546,7 @@ function closeOverlays() {
     updateUI();
 }
 
+// ========== МАГАЗИНЫ ==========
 function renderShop() {
     const list = document.getElementById('shop-list'); list.innerHTML = '';
     heroes.forEach(item => {
@@ -752,44 +857,22 @@ function winEscape() {
     if (hasEscapedThisLevel) return;
     hasEscapedThisLevel = true;
     active = false;
-
-    // Сбрасываем эффекты (вызываем добавленную ранее функцию)
-    if (typeof resetDangerEffects === 'function') {
-        resetDangerEffects();
-    }
-
+    resetDangerEffects();
     let baseReward = isHard ? 20 : 10;
     let bonus = 0;
     if (streak === 10) bonus = 20;
     else if (streak >= 2) bonus = (streak - 1) * 2;
     coins += baseReward + bonus;
     streak = Math.min(streak + 1, 10);
-
-    try {
-        save();
-    } catch(e) {
-        console.error("Ошибка сохранения:", e);
-    }
-
-    // Переключаем экраны
-    if (document.getElementById('hud')) document.getElementById('hud').style.display = 'none';
-    if (document.getElementById('flash-btn')) document.getElementById('flash-btn').style.display = 'none';
-
-    const exitScreen = document.getElementById('exit-screen');
-    if (exitScreen) {
-        exitScreen.style.display = 'flex';
-    }
-
-    const streakUi = document.getElementById('streak-ui');
-    if (streakUi) streakUi.innerText = 'СЕРИЯ: ' + streak;
-
-
+    save();
+    document.getElementById('hud').style.display = 'none';
+    document.getElementById('flash-btn').style.display = 'none';
+    document.getElementById('controls-hint').style.display = 'none';
+    document.getElementById('exit-screen').style.display = 'flex';
+    document.getElementById('streak-ui').innerText = 'СЕРИЯ: ' + streak;
 }
-
-// Принудительно привязываем обработчики к окну (window), чтобы их точно видел HTML
 window.continueAfterWin = function() {
-    const exitScreen = document.getElementById('exit-screen');
-    if (exitScreen) exitScreen.style.display = 'none';
+    document.getElementById('exit-screen').style.display = 'none';
     startGame(isHard);
 };
 
@@ -797,7 +880,10 @@ function triggerExorcism() {
     active = false; exorcismActive = true; exorcismT = Date.now();
     exorcismMX = m.x; exorcismMY = m.y;
     resetDangerEffects();
-    excCanvas.width = window.innerWidth; excCanvas.height = window.innerHeight;
+    excCanvas.width = Math.floor(window.innerWidth * renderScale);
+    excCanvas.height = Math.floor(window.innerHeight * renderScale);
+    excCanvas.style.width = window.innerWidth + 'px';
+    excCanvas.style.height = window.innerHeight + 'px';
     excCanvas.style.display = 'block';
     try {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -820,14 +906,13 @@ function animateExorcism() {
     let elapsed = Date.now() - exorcismT;
     let t = Math.min(elapsed / EXC_DURATION, 1.0);
     excCtx.clearRect(0, 0, excCanvas.width, excCanvas.height);
-    let sx = excCanvas.width/2 + (exorcismMX - p.x);
-    let sy = excCanvas.height/2 + (exorcismMY - p.y);
+    let sx = excCanvas.width/2 + (exorcismMX - p.x) * renderScale;
+    let sy = excCanvas.height/2 + (exorcismMY - p.y) * renderScale;
     if(t < 0.3) {
         let pt = t / 0.3;
         excCtx.save();
         excCtx.globalAlpha = pt * 0.8;
-        excCtx.shadowBlur = 60 * pt;
-        excCtx.shadowColor = '#f00';
+        if (shadowsEnabled) { excCtx.shadowBlur = 60 * pt; excCtx.shadowColor = '#f00'; }
         excCtx.beginPath();
         excCtx.arc(sx, sy, 20 * pt, 0, Math.PI*2);
         excCtx.strokeStyle = '#f00'; excCtx.lineWidth = 4;
@@ -837,16 +922,16 @@ function animateExorcism() {
     if(t > 0.1 && t < 0.85) {
         let pt = Math.min((t - 0.1) / 0.6, 1.0);
         const anchors = [
-            {ax: sx - 160, ay: sy - 120},
-            {ax: sx + 180, ay: sy - 80},
-            {ax: sx + 20,  ay: sy + 200},
+            {ax: sx - 160*renderScale, ay: sy - 120*renderScale},
+            {ax: sx + 180*renderScale, ay: sy - 80*renderScale},
+            {ax: sx + 20*renderScale,  ay: sy + 200*renderScale},
         ];
         anchors.forEach((anc) => {
             let cx2 = anc.ax + (sx - anc.ax) * pt;
             let cy2 = anc.ay + (sy - anc.ay) * pt;
             excCtx.save();
             excCtx.globalAlpha = Math.min(pt * 2, 0.9);
-            excCtx.shadowBlur = 15; excCtx.shadowColor = '#f80';
+            if (shadowsEnabled) { excCtx.shadowBlur = 15; excCtx.shadowColor = '#f80'; }
             excCtx.strokeStyle = '#f80'; excCtx.lineWidth = 3;
             excCtx.setLineDash([8, 5]);
             excCtx.lineDashOffset = -elapsed * 0.08;
@@ -857,7 +942,8 @@ function animateExorcism() {
             excCtx.setLineDash([]);
             excCtx.beginPath();
             excCtx.arc(cx2, cy2, 5, 0, Math.PI*2);
-            excCtx.fillStyle = '#fff'; excCtx.shadowColor = '#fff'; excCtx.shadowBlur = 10;
+            excCtx.fillStyle = '#fff';
+            if (shadowsEnabled) { excCtx.shadowColor = '#fff'; excCtx.shadowBlur = 10; }
             excCtx.fill();
             excCtx.restore();
         });
@@ -865,18 +951,17 @@ function animateExorcism() {
     let liftY = 0, mScale = 1.0;
     if(t > 0.55) {
         let lt = (t - 0.55) / 0.45;
-        liftY = lt * lt * 80;
+        liftY = lt * lt * 80 * renderScale;
         mScale = 1.0 - lt * 0.9;
     }
     let portalR = 0;
     if(t > 0.3) {
         let pr = (t - 0.3) / 0.7;
-        portalR = pr * pr * 80;
+        portalR = pr * pr * 80 * renderScale;
         excCtx.save();
         let pulseA = 0.5 + 0.3 * Math.sin(elapsed * 0.015);
         excCtx.globalAlpha = pulseA;
-        excCtx.shadowBlur = 40 + 20*Math.sin(elapsed*0.01);
-        excCtx.shadowColor = '#f00';
+        if (shadowsEnabled) { excCtx.shadowBlur = 40 + 20*Math.sin(elapsed*0.01); excCtx.shadowColor = '#f00'; }
         excCtx.beginPath();
         excCtx.arc(sx, sy, portalR + 10, 0, Math.PI*2);
         excCtx.strokeStyle = 'rgba(255,0,0,0.3)'; excCtx.lineWidth = 20;
@@ -895,8 +980,8 @@ function animateExorcism() {
             let rx = sx + Math.cos(angle) * (portalR * 0.8);
             let ry = sy + Math.sin(angle) * (portalR * 0.8);
             excCtx.globalAlpha = 0.6;
-            excCtx.shadowBlur = 8; excCtx.shadowColor = '#f00';
-            excCtx.fillStyle = '#f80'; excCtx.font = '14px Courier New';
+            if (shadowsEnabled) { excCtx.shadowBlur = 8; excCtx.shadowColor = '#f00'; }
+            excCtx.fillStyle = '#f80'; excCtx.font = `${14 * renderScale}px Courier New`;
             excCtx.textAlign = 'center';
             excCtx.fillText(['✝','⛧','☠','✞','⊗','☯'][i], rx, ry);
         }
@@ -907,11 +992,11 @@ function animateExorcism() {
         excCtx.translate(sx, sy - liftY);
         excCtx.scale(mScale, mScale);
         excCtx.globalAlpha = mScale;
-        excCtx.shadowBlur = 20; excCtx.shadowColor = '#f00';
+        if (shadowsEnabled) { excCtx.shadowBlur = 20; excCtx.shadowColor = '#f00'; }
         excCtx.strokeStyle = '#f00'; excCtx.lineWidth = 4;
-        excCtx.strokeRect(-25, -25, 50, 50);
+        excCtx.strokeRect(-25 * renderScale, -25 * renderScale, 50 * renderScale, 50 * renderScale);
         if(t > 0.55) {
-            let shk = (1 - mScale) * 8;
+            let shk = (1 - mScale) * 8 * renderScale;
             excCtx.translate((Math.random()-0.5)*shk, (Math.random()-0.5)*shk);
         }
         excCtx.restore();
@@ -920,11 +1005,11 @@ function animateExorcism() {
         let ci = Math.min((t-0.1)/0.15, 1.0);
         excCtx.save();
         excCtx.globalAlpha = ci * 0.9;
-        excCtx.shadowBlur = 30; excCtx.shadowColor = '#fff';
+        if (shadowsEnabled) { excCtx.shadowBlur = 30; excCtx.shadowColor = '#fff'; }
         excCtx.fillStyle = '#fff';
-        excCtx.font = `bold ${Math.round(36 * ci)}px Courier New`;
+        excCtx.font = `bold ${Math.round(36 * ci * renderScale)}px Courier New`;
         excCtx.textAlign = 'center';
-        excCtx.fillText('☩', sx, sy - 60 - liftY);
+        excCtx.fillText('☩', sx, sy - 60 * renderScale - liftY);
         excCtx.restore();
     }
     if(t > 0.92) {
@@ -944,6 +1029,7 @@ function animateExorcism() {
         save();
         document.getElementById('hud').style.display = 'none';
         document.getElementById('flash-btn').style.display = 'none';
+        document.getElementById('controls-hint').style.display = 'none';
         document.getElementById('win-screen').style.display = 'flex';
     }
 }
@@ -994,16 +1080,39 @@ function isWallVisible(w, camX, camY, viewW, viewH, margin = 200) {
 
 function loop() {
     if(!active || paused || exorcismActive) return;
-    if(touch) {
-        if(controlMode === 'follow') {
-            let dx = lastTouchPos.x - canvas.width/2;
-            let dy = lastTouchPos.y - canvas.height/2;
-            let dist = Math.hypot(dx, dy);
-            if(dist > 20) {
-                move = {x: dx/dist, y: dy/dist};
-                playerAngle = Math.atan2(dy, dx);
-            } else move = {x: 0, y: 0};
+
+    // ---- ОГРАНИЧЕНИЕ FPS ----
+    if (fpsLimit > 0) {
+        const now = performance.now();
+        const elapsed = now - lastFrameTime;
+        const interval = 1000 / fpsLimit;
+        if (elapsed < interval) {
+            requestAnimationFrame(loop);
+            return;
         }
+        lastFrameTime = now - (elapsed % interval);
+    } else {
+        lastFrameTime = performance.now();
+    }
+
+    // ---- КЛАВИАТУРНОЕ УПРАВЛЕНИЕ ----
+    if (controlMode === 'keyboard') {
+        let dx = 0, dy = 0;
+        if (keys['w'] || keys['W'] || keys['ArrowUp']) dy = -1;
+        if (keys['s'] || keys['S'] || keys['ArrowDown']) dy = 1;
+        if (keys['a'] || keys['A'] || keys['ArrowLeft']) dx = -1;
+        if (keys['d'] || keys['D'] || keys['ArrowRight']) dx = 1;
+        if (dx !== 0 || dy !== 0) {
+            let len = Math.hypot(dx, dy);
+            move = {x: dx/len, y: dy/len};
+            playerAngle = Math.atan2(dy, dx);
+        } else {
+            move = {x: 0, y: 0};
+        }
+    }
+
+    // ---- ДВИЖЕНИЕ ----
+    if (controlMode === 'keyboard' || touch) {
         let nx = p.x + move.x * h.s;
         let ny = p.y + move.y * h.s;
         let half = h.size + 6;
@@ -1020,12 +1129,14 @@ function loop() {
         }
         if (nx > 20 && nx < WORLD_SIZE-20 && canMoveX) p.x = nx;
         if (ny > 20 && ny < WORLD_SIZE-20 && canMoveY) p.y = ny;
-        if(Date.now() - p.step > h.noise) {
+        if ((move.x !== 0 || move.y !== 0) && Date.now() - p.step > h.noise) {
             rings.push({x:p.x, y:p.y, r:0, a:0.7, c: h.color, radMult:0.8, decay: 0.012});
             p.step = Date.now();
             m.tx = p.x; m.ty = p.y; m.state = 'hunting';
         }
     }
+
+    // ---- МОНСТР ----
     if (monsterStunUntil <= Date.now()) {
         let dm = Math.hypot(m.tx-m.x, m.ty-m.y);
         if(m.state === 'hunting' && dm > 5) {
@@ -1061,6 +1172,8 @@ function loop() {
         winEscape();
         return;
     }
+
+    // ---- КОЛЬЦА ----
     rings.forEach((r, i) => {
         r.r += 10*(r.radMult||1);
         r.a -= (r.decay || 0.012);
@@ -1073,11 +1186,17 @@ function loop() {
         }
         if(r.a <= 0) rings.splice(i, 1);
     });
+    // Ограничение количества колец
+    if (rings.length > maxRings) {
+        rings.splice(0, rings.length - maxRings);
+    }
+
     if(dangerIntensity > 0) {
         let mag = dangerIntensity * 18;
         shakeX = (Math.random()-0.5)*2*mag;
         shakeY = (Math.random()-0.5)*2*mag;
     }
+
     draw();
     requestAnimationFrame(loop);
 }
@@ -1088,13 +1207,23 @@ function draw() {
     let camX = p.x - canvas.width/2;
     let camY = p.y - canvas.height/2;
     ctx.translate(-camX + shakeX, -camY + shakeY);
+
+    // --- Сетка ---
     ctx.strokeStyle = '#0a0a0a'; ctx.beginPath();
     for(let x=0; x<=WORLD_SIZE; x+=200) { ctx.moveTo(x,0); ctx.lineTo(x,WORLD_SIZE); }
     for(let y=0; y<=WORLD_SIZE; y+=200) { ctx.moveTo(0,y); ctx.lineTo(WORLD_SIZE,y); }
     ctx.stroke();
-    ctx.shadowBlur=15; ctx.shadowColor=h.color;
-    ctx.strokeStyle=h.color; ctx.lineWidth=4; ctx.strokeRect(0,0,WORLD_SIZE,WORLD_SIZE);
-    ctx.shadowBlur=0;
+
+    // --- Границы мира ---
+    if (shadowsEnabled) {
+        ctx.shadowBlur = 15; ctx.shadowColor = h.color;
+    } else {
+        ctx.shadowBlur = 0;
+    }
+    ctx.strokeStyle = h.color; ctx.lineWidth = 4; ctx.strokeRect(0,0,WORLD_SIZE,WORLD_SIZE);
+    ctx.shadowBlur = 0;
+
+    // --- Стены ---
     walls.forEach(w => {
         if (!isWallVisible(w, camX, camY, canvas.width, canvas.height)) return;
         let isVisible = w.a > 0 || h.isHacker || touch || devModeActive;
@@ -1103,28 +1232,40 @@ function draw() {
             if(h.isHacker) opacity = 0.2;
             ctx.save();
             ctx.globalAlpha = opacity;
-            ctx.shadowBlur=20; ctx.shadowColor='#0f0';
-            ctx.fillStyle='rgba(0,255,0,0.1)'; ctx.fillRect(w.x,w.y,w.w,w.h);
-            ctx.strokeStyle='#0f0'; ctx.lineWidth=2; ctx.strokeRect(w.x,w.y,w.w,w.h);
+            if (shadowsEnabled) { ctx.shadowBlur = 20; ctx.shadowColor = '#0f0'; }
+            ctx.fillStyle = 'rgba(0,255,0,0.1)'; ctx.fillRect(w.x,w.y,w.w,w.h);
+            ctx.strokeStyle = '#0f0'; ctx.lineWidth = 2; ctx.strokeRect(w.x,w.y,w.w,w.h);
             ctx.restore();
         }
     });
+
+    // --- Монстр ---
     let showMonster = m.a > 0 || (h.isRadar && Math.hypot(p.x-m.x,p.y-m.y)<450) || monsterStunUntil > Date.now() || devModeActive;
     if(showMonster) {
         ctx.save();
         let isStunned = monsterStunUntil > Date.now();
         ctx.globalAlpha = devModeActive ? 0.8 : (isStunned ? 1.0 : (h.isRadar ? 0.4 : m.a));
-        ctx.shadowBlur=15;
-        ctx.shadowColor= isStunned ? '#fff' : '#f00';
-        ctx.strokeStyle= isStunned ? '#fff' : '#f00';
-        ctx.lineWidth=4;
+        if (shadowsEnabled) {
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = isStunned ? '#fff' : '#f00';
+        } else {
+            ctx.shadowBlur = 0;
+        }
+        ctx.strokeStyle = isStunned ? '#fff' : '#f00';
+        ctx.lineWidth = 4;
         ctx.strokeRect(m.x-25,m.y-25,50,50);
         ctx.restore();
     }
+
+    // --- Выход ---
     ctx.save();
     ctx.globalAlpha = 1;
-    ctx.shadowBlur = 25;
-    ctx.shadowColor = '#fff';
+    if (shadowsEnabled) {
+        ctx.shadowBlur = 25;
+        ctx.shadowColor = '#fff';
+    } else {
+        ctx.shadowBlur = 0;
+    }
     ctx.fillStyle = '#fff';
     ctx.strokeStyle = '#fff';
     ctx.lineWidth = 2;
@@ -1133,40 +1274,73 @@ function draw() {
     ctx.fill();
     ctx.stroke();
     ctx.restore();
+
+    // --- Кольца ---
     rings.forEach(r => {
         ctx.save();
-        ctx.globalAlpha=r.a; ctx.beginPath(); ctx.arc(r.x,r.y,r.r,0,7);
-        ctx.strokeStyle=r.c; ctx.lineWidth=2;
-        ctx.shadowBlur=10; ctx.shadowColor=r.c;
-        ctx.stroke(); ctx.restore();
+        ctx.globalAlpha = r.a;
+        ctx.beginPath();
+        ctx.arc(r.x, r.y, r.r, 0, 7);
+        ctx.strokeStyle = r.c;
+        ctx.lineWidth = 2;
+        if (shadowsEnabled) { ctx.shadowBlur = 10; ctx.shadowColor = r.c; }
+        ctx.stroke();
+        ctx.restore();
     });
+
+    // --- Игрок ---
     ctx.save();
     ctx.translate(p.x, p.y);
     ctx.rotate(playerAngle);
-    ctx.shadowBlur=15; ctx.shadowColor=h.color;
-    ctx.globalAlpha=1; ctx.strokeStyle=h.color; ctx.lineWidth=2;
+    if (shadowsEnabled) {
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = h.color;
+    } else {
+        ctx.shadowBlur = 0;
+    }
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = h.color;
+    ctx.lineWidth = 2;
     ctx.strokeRect(-h.size, -h.size, h.size*2, h.size*2);
     ctx.restore();
+
     if(hasCross) {
         ctx.save();
-        ctx.globalAlpha = 0.7; ctx.shadowBlur=10; ctx.shadowColor='#fff';
-        ctx.fillStyle='#fff'; ctx.font='16px Courier New'; ctx.textAlign='center';
+        ctx.globalAlpha = 0.7;
+        if (shadowsEnabled) { ctx.shadowBlur = 10; ctx.shadowColor = '#fff'; }
+        ctx.fillStyle = '#fff';
+        ctx.font = '16px Courier New';
+        ctx.textAlign = 'center';
         ctx.fillText('☩', p.x, p.y-20);
         ctx.restore();
     }
+
     ctx.restore();
+
+    // --- Стрелка к выходу ---
     if(Date.now() < arrowT) {
-        ctx.save(); ctx.translate(canvas.width/2, canvas.height/2);
+        ctx.save();
+        ctx.translate(canvas.width/2, canvas.height/2);
         ctx.rotate(Math.atan2(exit.y-p.y, exit.x-p.x));
-        ctx.strokeStyle='#ff0'; ctx.lineWidth=3; ctx.shadowBlur=10; ctx.shadowColor='#ff0';
-        ctx.beginPath(); ctx.moveTo(60,0); ctx.lineTo(40,-15); ctx.lineTo(40,15); ctx.closePath(); ctx.stroke();
+        ctx.strokeStyle = '#ff0';
+        ctx.lineWidth = 3;
+        if (shadowsEnabled) { ctx.shadowBlur = 10; ctx.shadowColor = '#ff0'; } else { ctx.shadowBlur = 0; }
+        ctx.beginPath();
+        ctx.moveTo(60,0);
+        ctx.lineTo(40,-15);
+        ctx.lineTo(40,15);
+        ctx.closePath();
+        ctx.stroke();
         ctx.restore();
     }
+
+    // --- Обновление CD кнопки ---
     let cd = (actionCooldownDuration > 0) ? Math.min(1, (Date.now() - actionLastUse) / actionCooldownDuration) : 1;
     document.getElementById('flash-fill').style.height = (cd * 100) + '%';
     document.getElementById('cd-text').innerText = cd >= 1 ? 'ГОТОВ' : ((actionCooldownDuration - (Date.now() - actionLastUse)) / 1000).toFixed(1);
 }
 
+// ========== СТАРТ ИГРЫ ==========
 function startGame(hard) {
     active = true; isHard = hard; exorcismActive = false;
     devModeActive = false; if (devModeTimeout) clearTimeout(devModeTimeout);
@@ -1178,7 +1352,8 @@ function startGame(hard) {
     monsterSpawnX = m.x; monsterSpawnY = m.y;
     rings = []; walls = [];
     resetDangerEffects();
-    for(let i=0; i<85; i++) {
+    // Генерация стен с учётом maxWalls
+    for(let i=0; i<maxWalls; i++) {
         let wx = 100+Math.random()*(WORLD_SIZE-300);
         let wy = 100+Math.random()*(WORLD_SIZE-300);
         if(Math.hypot(wx-p.x, wy-p.y) > 200 && Math.hypot(wx-exit.x, wy-exit.y) > 200)
@@ -1192,6 +1367,11 @@ function startGame(hard) {
     document.getElementById('flash-btn').style.display = 'block';
     document.getElementById('streak-ui').style.display = 'block';
     document.getElementById('streak-ui').innerText = 'СЕРИЯ: ' + streak;
+    if (controlMode === 'keyboard') {
+        document.getElementById('controls-hint').style.display = 'block';
+    } else {
+        document.getElementById('controls-hint').style.display = 'none';
+    }
     updateFlashBtn();
     updateUI();
     requestAnimationFrame(loop);
@@ -1203,10 +1383,7 @@ window.goToMenu = function() {
     exorcismActive = false;
     devModeActive = false;
     if (devModeTimeout) clearTimeout(devModeTimeout);
-
-    if (typeof resetDangerEffects === 'function') resetDangerEffects();
-
-    // Массовое скрытие всех возможных окон и оверлеев
+    resetDangerEffects();
     const IDs = [
         'hud', 'flash-btn', 'exit-screen', 'win-screen', 'confirm-screen',
         'pause-menu', 'shop', 'settings', 'crate-overlay', 'itemShop',
@@ -1216,15 +1393,15 @@ window.goToMenu = function() {
         const el = document.getElementById(id);
         if (el) el.style.display = 'none';
     });
-
+    document.getElementById('controls-hint').style.display = 'none';
     const menu = document.getElementById('menu');
     if (menu) menu.style.display = 'flex';
-
-    if (typeof updateUI === 'function') updateUI();
-    if (typeof updateFlashBtn === 'function') updateFlashBtn();
-    if (typeof checkDailyButton === 'function') checkDailyButton();
+    updateUI();
+    updateFlashBtn();
+    checkDailyButton();
 };
 
+// ========== CRATE ==========
 function openCrate(type) {
     if (type === 'item' && coins < 100) return;
     if (type === 'hero' && coins < 300) return;
@@ -1309,6 +1486,99 @@ function updateUI() {
 }
 function resetData() { if(confirm('СБРОСИТЬ ВЕСЬ ПРОГРЕСС?')) { localStorage.clear(); location.reload(); } }
 
+// ========== ФУНКЦИИ ДЛЯ ОПТИМИЗАЦИИ ==========
+function applyRenderScale(val) {
+    renderScale = val;
+    localStorage.setItem('e_renderScale', val);
+    document.getElementById('render-scale-label').innerText = val.toFixed(1);
+    resizeCanvas();
+}
+function applyWallCount(val) {
+    maxWalls = parseInt(val);
+    localStorage.setItem('e_maxWalls', maxWalls);
+    document.getElementById('wall-count-label').innerText = maxWalls;
+}
+function applyRingLimit(val) {
+    maxRings = parseInt(val);
+    localStorage.setItem('e_maxRings', maxRings);
+    document.getElementById('ring-limit-label').innerText = maxRings;
+}
+function toggleShadows() {
+    shadowsEnabled = !shadowsEnabled;
+    localStorage.setItem('e_shadows', shadowsEnabled);
+    document.getElementById('shadow-status').innerText = shadowsEnabled ? 'ВКЛ' : 'ВЫКЛ';
+}
+function toggleFpsLimit() {
+    const limits = [30, 60, 0];
+    let idx = limits.indexOf(fpsLimit);
+    idx = (idx + 1) % limits.length;
+    fpsLimit = limits[idx];
+    localStorage.setItem('e_fpsLimit', fpsLimit);
+    document.getElementById('fps-limit-label').innerText = fpsLimit === 0 ? 'БЕЗ' : fpsLimit;
+}
+
+function loadOptimizationUI() {
+    document.getElementById('render-scale-slider').value = renderScale * 100;
+    document.getElementById('render-scale-label').innerText = renderScale.toFixed(1);
+    document.getElementById('wall-count-slider').value = maxWalls;
+    document.getElementById('wall-count-label').innerText = maxWalls;
+    document.getElementById('ring-limit-slider').value = maxRings;
+    document.getElementById('ring-limit-label').innerText = maxRings;
+    document.getElementById('shadow-status').innerText = shadowsEnabled ? 'ВКЛ' : 'ВЫКЛ';
+    document.getElementById('fps-limit-label').innerText = fpsLimit === 0 ? 'БЕЗ' : fpsLimit;
+}
+
+// ========== РАЗМЕР CANVAS ==========
+function resizeCanvas() {
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    canvas.width = Math.floor(w * renderScale);
+    canvas.height = Math.floor(h * renderScale);
+    canvas.style.width = w + 'px';
+    canvas.style.height = h + 'px';
+    if (excCanvas) {
+        excCanvas.width = Math.floor(w * renderScale);
+        excCanvas.height = Math.floor(h * renderScale);
+        excCanvas.style.width = w + 'px';
+        excCanvas.style.height = h + 'px';
+    }
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+// ========== ОБРАБОТЧИКИ КЛАВИАТУРЫ ==========
+window.addEventListener('keydown', (e) => {
+    keys[e.key] = true;
+    if (e.key === ' ' || e.key === 'Space') {
+        e.preventDefault();
+        handleAction();
+    }
+});
+window.addEventListener('keyup', (e) => {
+    keys[e.key] = false;
+});
+
+canvas.addEventListener('click', (e) => {
+    if (e.target.closest('button') || e.target.closest('.btn') || e.target.closest('.overlay')) return;
+    if (!active || paused || exorcismActive) return;
+    handleAction();
+});
+canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+
+// ========== ИНИЦИАЛИЗАЦИЯ ==========
+if (controlMode !== 'keyboard' && controlMode !== 'joystick' && controlMode !== 'follow') {
+    controlMode = 'keyboard';
+}
+document.getElementById('ctrl-mode-btn').innerText =
+    controlMode === 'keyboard' ? 'КЛАВИАТУРА' :
+    controlMode === 'joystick' ? 'ДЖОЙСТИК' : 'СЛЕЖЕНИЕ';
+if (controlMode === 'keyboard') {
+    document.getElementById('controls-hint').style.display = 'block';
+} else {
+    document.getElementById('controls-hint').style.display = 'none';
+}
+
+// Сенсорные обработчики (на случай джойстика)
 window.onpointerdown = (e) => {
     if(e.target.closest('button') || e.target.closest('input') || e.target.closest('.hero-card') || e.target.closest('.item-card') || e.target.closest('.totem-card') || e.target.closest('.skin-card')) return;
     if(!active || paused || exorcismActive) return;
@@ -1337,89 +1607,13 @@ window.onpointermove = (e) => {
 };
 window.onpointerup = (e) => { touch = false; move = {x:0,y:0}; document.getElementById('joystick-base').style.display='none'; canvas.releasePointerCapture(e.pointerId); };
 canvas.addEventListener('pointerleave', () => { if(touch) { touch = false; move = {x:0,y:0}; document.getElementById('joystick-base').style.display='none'; } });
-window.onresize = () => { canvas.width=window.innerWidth; canvas.height=window.innerHeight; excCanvas.width=window.innerWidth; excCanvas.height=window.innerHeight; };
+
 document.getElementById('crate-box').addEventListener('click', clickCrate);
-window.onresize(); updateUI(); checkDailyButton();
-// 3. REMOVED: })();
-// ========== НЕАГРЕССИВНАЯ ПРОВЕРКА ОБНОВЛЕНИЙ (МОБИЛЬНАЯ) ==========
-(function() {
-    const STORAGE_KEY = 'e_update_mobile';
-    const CHECK_INTERVAL = 30 * 60 * 1000; // 30 минут
-    const REPO_OWNER = 'rodiowa1';
-    const REPO_NAME = 'Echo-Defentive-Edition';
-    const FILE_NAME = 'Echo_new.html'; // проверяем именно этот файл
 
-    function getLastCommitDate(filePath) {
-        const url = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/commits?path=${encodeURIComponent(filePath)}&per_page=1`;
-        return fetch(url)
-            .then(res => {
-                if (!res.ok) throw new Error('API error');
-                return res.json();
-            })
-            .then(data => {
-                if (data.length === 0) return null;
-                return new Date(data[0].commit.committer.date);
-            })
-            .catch(() => null);
-    }
-
-    function checkUpdate() {
-        const lastCheckKey = STORAGE_KEY + '_lastCheck';
-        const lastSeenKey = STORAGE_KEY + '_lastSeen';
-        const now = Date.now();
-        const lastCheck = parseInt(localStorage.getItem(lastCheckKey) || '0');
-        if (now - lastCheck < CHECK_INTERVAL) return; // слишком часто
-
-        localStorage.setItem(lastCheckKey, String(now));
-        getLastCommitDate(FILE_NAME).then(date => {
-            if (!date) return;
-            const lastSeen = localStorage.getItem(lastSeenKey);
-            if (!lastSeen || new Date(lastSeen) < date) {
-                // Есть новая версия!
-                showUpdateNotification();
-                localStorage.setItem(lastSeenKey, date.toISOString());
-            }
-        });
-    }
-
-    function showUpdateNotification() {
-        const div = document.createElement('div');
-        div.style.cssText = `
-            position: fixed; bottom: 20px; left: 20px;
-            background: rgba(0,0,0,0.85);
-            color: #0f0;
-            border: 1px solid #0f0;
-            padding: 10px 15px;
-            font-family: 'Courier New', monospace;
-            font-size: 12px;
-            z-index: 9999;
-            border-radius: 8px;
-            box-shadow: 0 0 20px rgba(0,255,0,0.2);
-            cursor: pointer;
-            transition: opacity 0.5s;
-            max-width: 220px;
-            text-align: left;
-            line-height: 1.4;
-        `;
-        div.innerHTML = `
-            ⚡ <strong>Новая версия!</strong><br>
-            <span style="font-size:10px; color:#aaa;">Нажмите для скачивания</span>
-        `;
-        div.onclick = function() {
-            window.open('https://rodiowa1.github.io/Echo-Defentive-Edition/', '_blank');
-        };
-        document.body.appendChild(div);
-        // Через 10 секунд приглушаем, но не убираем полностью
-        setTimeout(() => {
-            div.style.opacity = '0.5';
-        }, 10000);
-        div.onmouseover = () => div.style.opacity = '1';
-        div.onmouseout = () => div.style.opacity = '0.5';
-    }
-
-    // Запускаем проверку через 5 секунд после загрузки игры
-    setTimeout(checkUpdate, 5000);
-})();
+updateUI();
+checkDailyButton();
+loadOptimizationUI();
+console.log('ECHO 2.0 PC — оптимизированная версия загружена.');
 </script>
 </body>
 </html>

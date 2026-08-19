@@ -5,19 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
     <title>ECHO 2.0 — Хоррор-игра на выживание</title>
     <meta name="description" content="Убегайте от монстра в лабиринте, используйте импульсы, покупайте классы и предметы. Ежедневные награды, хардкорный режим и секреты!">
-
     <meta property="og:title" content="ECHO 2.0 — Игра на выживание">
     <meta property="og:description" content="Хоррор-игра с уникальными классами, предметами и ритуалами изгнания. Попробуй выжить!">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://rodiowa1.github.io/Echo-Defentive-Edition/">
+    <meta property="og:image" content="https://rodiowa1.github.io/Echo-Defentive-Edition/banner.jpg">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👻</text></svg>">
-
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin:0; padding:0; box-sizing:border-box; }
         body {
             background: #0a0a0a;
             color: #0f0;
@@ -41,7 +36,6 @@
             border-radius: 12px;
             backdrop-filter: blur(4px);
         }
-        /* Баннер – SVG логотип */
         .banner-svg {
             width: 100%;
             max-height: 220px;
@@ -90,21 +84,29 @@
             color: #aaa;
             line-height: 1.4;
         }
+        .play-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin: 15px 0 10px;
+        }
         .btn-play {
             display: inline-block;
-            margin-top: 10px;
-            padding: 18px 50px;
+            padding: 18px 40px;
             background: transparent;
             color: #0f0;
             border: 2px solid #0f0;
-            font-size: 1.4rem;
+            font-size: 1.2rem;
             text-transform: uppercase;
-            letter-spacing: 6px;
+            letter-spacing: 4px;
             text-decoration: none;
             transition: all 0.3s ease;
             box-shadow: 0 0 25px rgba(0,255,0,0.2);
             border-radius: 8px;
             cursor: pointer;
+            flex: 1 1 auto;
+            min-width: 200px;
         }
         .btn-play:hover {
             background: #0f0;
@@ -112,9 +114,96 @@
             box-shadow: 0 0 60px #0f0;
             transform: scale(1.03);
         }
-        .btn-play:active {
-            transform: scale(0.97);
+        .btn-play:active { transform: scale(0.97); }
+        .btn-play-pc {
+            border-color: #0ff;
+            color: #0ff;
+            box-shadow: 0 0 25px rgba(0,255,255,0.2);
         }
+        .btn-play-pc:hover {
+            background: #0ff;
+            color: #000;
+            box-shadow: 0 0 60px #0ff;
+        }
+        .download-block {
+            margin: 20px 0 10px;
+            padding: 15px;
+            border: 1px dashed #444;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.03);
+            scroll-margin-top: 20px;
+        }
+        .download-title {
+            color: #0f0;
+            font-size: 1.1rem;
+            letter-spacing: 1px;
+            text-shadow: 0 0 10px rgba(0,255,0,0.3);
+            margin-bottom: 12px;
+        }
+        .download-actions {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin: 10px 0;
+        }
+        .btn-download {
+            display: inline-block;
+            padding: 12px 25px;
+            background: transparent;
+            color: #ffaa00;
+            border: 2px solid #ffaa00;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 20px rgba(255,170,0,0.3);
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .btn-download:hover {
+            background: #ffaa00;
+            color: #000;
+            box-shadow: 0 0 50px #ffaa00;
+            transform: scale(1.03);
+        }
+        .download-hint {
+            color: #aaa;
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+            margin-top: 10px;
+            line-height: 1.5;
+        }
+        .guide-block {
+            margin: 25px 0 10px;
+            padding: 15px 20px;
+            border: 1px solid #1a1a1a;
+            border-radius: 8px;
+            background: rgba(0,20,0,0.3);
+            text-align: left;
+        }
+        .guide-title {
+            color: #0f0;
+            font-size: 1.1rem;
+            letter-spacing: 2px;
+            margin-bottom: 12px;
+            text-shadow: 0 0 10px rgba(0,255,0,0.2);
+        }
+        .guide-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .guide-list li {
+            color: #aaa;
+            font-size: 0.9rem;
+            padding: 6px 0;
+            border-bottom: 1px solid #111;
+            letter-spacing: 0.5px;
+        }
+        .guide-list li:last-child { border-bottom: none; }
+        .guide-list li::before { content: "▸ "; color: #0f0; }
         .footer {
             margin-top: 35px;
             font-size: 0.7rem;
@@ -123,19 +212,19 @@
             border-top: 1px solid #111;
             padding-top: 20px;
         }
-        .footer a {
-            color: #0f0;
-            text-decoration: none;
-        }
+        .footer a { color: #0f0; text-decoration: none; }
         @media (max-width: 600px) {
             .banner-svg { max-height: 150px; }
             .features { grid-template-columns: 1fr; }
             .version { font-size: 0.7rem; }
+            .guide-list li { font-size: 0.8rem; }
+            .btn-play { font-size: 1rem; padding: 14px 20px; min-width: 150px; }
         }
     </style>
 </head>
 <body>
 <div class="container">
+    <!-- SVG-баннер -->
     <svg class="banner-svg" viewBox="0 0 380 120" xmlns="http://www.w3.org/2000/svg">
         <defs>
             <filter id="glow">
@@ -152,6 +241,7 @@
     </svg>
 
     <div class="version">⚡ ТОТАЛЬНЫЙ АРСЕНАЛ ⚡</div>
+
     <div class="tagline">
         УБЕГАЙ · ИСПОЛЬЗУЙ ИМПУЛЬСЫ · ПОБЕЖДАЙ МОНСТРА
     </div>
@@ -175,12 +265,125 @@
         </div>
     </div>
 
-    <a href="Echo_new.html" class="btn-play">▶ ИГРАТЬ</a>
+    <!-- Кнопки запуска -->
+    <div class="play-buttons">
+        <a href="Echo_new.html" class="btn-play">▶ ИГРАТЬ (МОБ.)</a>
+        <a href="Echo_PC.html" class="btn-play btn-play-pc">▶ ИГРАТЬ (ПК)</a>
+    </div>
+
+    <!-- Блок скачивания -->
+    <div class="download-block" id="download-block">
+        <p class="download-title">📥 Играйте без интернета — скачайте один HTML-файл</p>
+        <div class="download-actions">
+            <a href="https://raw.githubusercontent.com/rodiowa1/Echo-Defentive-Edition/main/Echo_new.html" download="Echo_2.0_mobile.html" class="btn-download">⬇ МОБИЛЬНАЯ</a>
+            <a href="https://raw.githubusercontent.com/rodiowa1/Echo-Defentive-Edition/main/Echo_PC.html" download="Echo_2.0_pc.html" class="btn-download">⬇ ПК-ВЕРСИЯ</a>
+        </div>
+        <p class="download-hint">
+            Все сохранения (монеты, скины, прогресс) хранятся в вашем браузере<br>
+            и сохраняются даже при локальной игре.
+        </p>
+    </div>
+
+    <!-- Гайд по запуску -->
+    <div class="guide-block">
+        <h3 class="guide-title">📖 КАК ЗАПУСТИТЬ ИГРУ</h3>
+        <ul class="guide-list">
+            <li>⬇ Скачайте нужную версию (Мобильная или ПК).</li>
+            <li>📂 Откройте файл в любом браузере (Chrome, Firefox, Edge, Safari).</li>
+            <li>💾 Прогресс сохраняется автоматически в вашем браузере (localStorage).</li>
+            <li>📱 На телефоне: после открытия в Chrome нажмите «Установить приложение» (PWA).</li>
+            <li>🔒 Игра работает полностью офлайн после скачивания.</li>
+            <li>🔄 При выходе новой версии игры скачайте файл заново — обновление происходит вручную.</li>
+        </ul>
+    </div>
 
     <div class="footer">
         <p>Сделано с ❤️ для смелых • <a href="https://github.com/rodiowa1/Echo-Defentive-Edition" target="_blank">GitHub</a></p>
         <p style="color:#222; font-size:0.6rem;">Внимание: игра содержит яркие вспышки и резкие звуки.</p>
     </div>
 </div>
+
+<script>
+// ========== НЕНАВЯЗЧИВОЕ УВЕДОМЛЕНИЕ ОБ ОБНОВЛЕНИЯХ ==========
+(function() {
+    const STORAGE_KEY = 'e_siteUpdateSeen';
+    const CHECK_INTERVAL = 30 * 60 * 1000; // 30 минут
+    const REPO_OWNER = 'rodiowa1';
+    const REPO_NAME = 'Echo-Defentive-Edition';
+    const GAME_FILES = ['Echo_new.html', 'Echo_PC.html'];
+
+    function getLastCommitDate(filePath) {
+        const url = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/commits?path=${encodeURIComponent(filePath)}&per_page=1`;
+        return fetch(url)
+            .then(res => {
+                if (!res.ok) throw new Error('API error');
+                return res.json();
+            })
+            .then(data => {
+                if (data.length === 0) return null;
+                return new Date(data[0].commit.committer.date);
+            })
+            .catch(() => null);
+    }
+
+    function checkForUpdates() {
+        const lastCheck = parseInt(localStorage.getItem(STORAGE_KEY + '_lastCheck') || '0');
+        const now = Date.now();
+        if (now - lastCheck < CHECK_INTERVAL) return;
+        localStorage.setItem(STORAGE_KEY + '_lastCheck', String(now));
+
+        let latestCommit = null;
+        let promises = GAME_FILES.map(file => getLastCommitDate(file));
+        Promise.all(promises).then(dates => {
+            dates.forEach(date => {
+                if (date && (!latestCommit || date > latestCommit)) {
+                    latestCommit = date;
+                }
+            });
+            if (!latestCommit) return;
+            const lastSeen = localStorage.getItem(STORAGE_KEY + '_seen');
+            if (!lastSeen || new Date(lastSeen) < latestCommit) {
+                showUpdateNotification();
+                localStorage.setItem(STORAGE_KEY + '_seen', latestCommit.toISOString());
+            }
+        });
+    }
+
+    function showUpdateNotification() {
+        const div = document.createElement('div');
+        div.style.cssText = `
+            position: fixed; bottom: 20px; left: 20px;
+            background: rgba(0,0,0,0.85);
+            color: #ff4444;
+            border: 1px solid #ff4444;
+            padding: 10px 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            z-index: 9999;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(255,0,0,0.3);
+            cursor: pointer;
+            transition: opacity 0.5s;
+            max-width: 220px;
+            text-align: left;
+            line-height: 1.4;
+        `;
+        div.innerHTML = `
+            ⚡ <strong>Новое обновление!</strong><br>
+            <span style="font-size:10px; color:#aaa;">Нажмите, чтобы скачать</span>
+        `;
+        div.onclick = function() {
+            document.getElementById('download-block').scrollIntoView({ behavior: 'smooth' });
+        };
+        document.body.appendChild(div);
+        // Через 10 секунд приглушаем
+        setTimeout(() => { div.style.opacity = '0.5'; }, 10000);
+        div.onmouseover = () => div.style.opacity = '1';
+        div.onmouseout = () => div.style.opacity = '0.5';
+    }
+
+    setTimeout(checkForUpdates, 5000);
+})();
+</script>
 </body>
 </html>
