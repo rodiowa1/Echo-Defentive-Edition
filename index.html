@@ -1,10 +1,186 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
-    <meta http-equiv="refresh" content="0; url=Echo_new.html">
-    <title>Перенаправление...</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>ECHO 2.0 — Хоррор-игра на выживание</title>
+    <meta name="description" content="Убегайте от монстра в лабиринте, используйте импульсы, покупайте классы и предметы. Ежедневные награды, хардкорный режим и секреты!">
+
+    <meta property="og:title" content="ECHO 2.0 — Игра на выживание">
+    <meta property="og:description" content="Хоррор-игра с уникальными классами, предметами и ритуалами изгнания. Попробуй выжить!">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://rodiowa1.github.io/Echo-Defentive-Edition/">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👻</text></svg>">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #0a0a0a;
+            color: #0f0;
+            font-family: 'Courier New', monospace;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            text-align: center;
+            background-image: radial-gradient(circle at 20% 30%, #0a1a0a, #000000);
+        }
+        .container {
+            max-width: 820px;
+            width: 100%;
+            padding: 30px 20px;
+            border: 1px solid #0f0;
+            box-shadow: 0 0 40px rgba(0,255,0,0.2);
+            background: rgba(0,0,0,0.85);
+            border-radius: 12px;
+            backdrop-filter: blur(4px);
+        }
+        /* Баннер – SVG логотип */
+        .banner-svg {
+            width: 100%;
+            max-height: 220px;
+            height: auto;
+            display: block;
+            margin: 0 auto 10px;
+            filter: drop-shadow(0 0 20px rgba(0,255,0,0.3));
+        }
+        .version {
+            color: #888;
+            font-size: 0.9rem;
+            letter-spacing: 4px;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+        }
+        .tagline {
+            font-size: 1.2rem;
+            color: #aaa;
+            margin-bottom: 25px;
+            letter-spacing: 2px;
+            border-top: 1px solid #1a1a1a;
+            border-bottom: 1px solid #1a1a1a;
+            padding: 15px 0;
+        }
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin: 25px 0 30px;
+            text-align: left;
+        }
+        .feature {
+            background: rgba(0,20,0,0.6);
+            padding: 15px;
+            border-left: 3px solid #0f0;
+            border-radius: 4px;
+        }
+        .feature h3 {
+            font-size: 1rem;
+            letter-spacing: 2px;
+            color: #0f0;
+            margin-bottom: 5px;
+        }
+        .feature p {
+            font-size: 0.85rem;
+            color: #aaa;
+            line-height: 1.4;
+        }
+        .btn-play {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 18px 50px;
+            background: transparent;
+            color: #0f0;
+            border: 2px solid #0f0;
+            font-size: 1.4rem;
+            text-transform: uppercase;
+            letter-spacing: 6px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 25px rgba(0,255,0,0.2);
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .btn-play:hover {
+            background: #0f0;
+            color: #000;
+            box-shadow: 0 0 60px #0f0;
+            transform: scale(1.03);
+        }
+        .btn-play:active {
+            transform: scale(0.97);
+        }
+        .footer {
+            margin-top: 35px;
+            font-size: 0.7rem;
+            color: #333;
+            letter-spacing: 2px;
+            border-top: 1px solid #111;
+            padding-top: 20px;
+        }
+        .footer a {
+            color: #0f0;
+            text-decoration: none;
+        }
+        @media (max-width: 600px) {
+            .banner-svg { max-height: 150px; }
+            .features { grid-template-columns: 1fr; }
+            .version { font-size: 0.7rem; }
+        }
+    </style>
 </head>
 <body>
-    <p>Если не перенаправило, <a href="Echo_new.html">нажмите сюда</a>.</p>
+<div class="container">
+    <svg class="banner-svg" viewBox="0 0 380 120" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+            <filter id="glow">
+                <feGaussianBlur stdDeviation="5" result="blur"/>
+                <feMerge>
+                    <feMergeNode in="blur"/>
+                    <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+            </filter>
+        </defs>
+        <circle cx="110" cy="60" r="45" fill="none" stroke="#0f0" stroke-width="6" filter="url(#glow)"/>
+        <circle cx="110" cy="60" r="45" fill="#0f0" opacity="0.15"/>
+        <text x="180" y="75" font-family="'Courier New', monospace" font-size="56" font-weight="bold" fill="#0f0" text-anchor="start" filter="url(#glow)" letter-spacing="6">Echo</text>
+    </svg>
+
+    <div class="version">⚡ ТОТАЛЬНЫЙ АРСЕНАЛ ⚡</div>
+    <div class="tagline">
+        УБЕГАЙ · ИСПОЛЬЗУЙ ИМПУЛЬСЫ · ПОБЕЖДАЙ МОНСТРА
+    </div>
+
+    <div class="features">
+        <div class="feature">
+            <h3>🕹️ 20+ КЛАССОВ</h3>
+            <p>От Скаута до Священника – каждый со своей уникальной способностью.</p>
+        </div>
+        <div class="feature">
+            <h3>🧩 ПРЕДМЕТЫ И ТОТЕМЫ</h3>
+            <p>Аптечки, радары, телепорты и пассивные усиления для выживания.</p>
+        </div>
+        <div class="feature">
+            <h3>☩ РИТУАЛ ИЗГНАНИЯ</h3>
+            <p>Купите Распятие и отправьте монстра в ад – это единственная победа!</p>
+        </div>
+        <div class="feature">
+            <h3>🎁 ЕЖЕДНЕВНЫЕ НАГРАДЫ</h3>
+            <p>Заходите каждый день – получайте монеты и осколки эха.</p>
+        </div>
+    </div>
+
+    <a href="Echo_new.html" class="btn-play">▶ ИГРАТЬ</a>
+
+    <div class="footer">
+        <p>Сделано с ❤️ для смелых • <a href="https://github.com/rodiowa1/Echo-Defentive-Edition" target="_blank">GitHub</a></p>
+        <p style="color:#222; font-size:0.6rem;">Внимание: игра содержит яркие вспышки и резкие звуки.</p>
+    </div>
+</div>
 </body>
 </html>
