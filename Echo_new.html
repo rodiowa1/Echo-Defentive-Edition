@@ -89,8 +89,36 @@
         #crate-open-btn { display: none; }
         .crate-opening { animation: crateShake 0.1s infinite; }
         @keyframes crateShake { 0%{transform:translate(0,0)} 25%{transform:translate(-3px,2px)} 50%{transform:translate(2px,-1px)} 75%{transform:translate(-1px,-2px)} 100%{transform:translate(1px,1px)} }
-        .skin-rarity-1 { border-color: #00aaff; } .skin-rarity-2 { border-color: #0055ff; } .skin-rarity-3 { border-color: #aa00ff; } .skin-rarity-4 { border-color: #ff0000; } .skin-rarity-5 { border-color: #ffd700; }
-        .skin-sale { border: 2px dashed #ffaa00 !important; box-shadow: 0 0 15px #ffaa00; }
+
+        /* ===== ИСПРАВЛЕННЫЕ СТИЛИ ДЛЯ СКИНОВ ===== */
+        .skin-card {
+            width: 280px;
+            margin: 8px auto;
+            background: rgba(0,0,0,0.8);
+            padding: 12px 14px;
+            cursor: pointer;
+            text-align: left;
+            font-size: 11px;
+            border: 2px solid #444;
+            border-radius: 6px;
+            transition: 0.2s;
+            color: #ccc;
+            box-shadow: 0 0 8px rgba(255,255,255,0.05);
+        }
+        .skin-card:active { background: rgba(255,255,255,0.08); }
+        .skin-card .skin-name { font-weight: bold; color: #fff; }
+        .skin-card .skin-rarity-label { font-size: 10px; opacity: 0.7; }
+        .skin-rarity-1 { border-color: #00aaff; box-shadow: 0 0 10px rgba(0,170,255,0.3); }
+        .skin-rarity-2 { border-color: #0055ff; box-shadow: 0 0 10px rgba(0,85,255,0.3); }
+        .skin-rarity-3 { border-color: #aa00ff; box-shadow: 0 0 10px rgba(170,0,255,0.3); }
+        .skin-rarity-4 { border-color: #ff0000; box-shadow: 0 0 10px rgba(255,0,0,0.3); }
+        .skin-rarity-5 { border-color: #ffd700; box-shadow: 0 0 10px rgba(255,215,0,0.3); }
+        .skin-sale {
+            border: 2px dashed #ffaa00 !important;
+            box-shadow: 0 0 20px rgba(255,170,0,0.4) !important;
+            background: rgba(255,170,0,0.05);
+        }
+
         .item-card, .totem-card { width: 280px; margin: 8px auto; background: rgba(0,0,0,0.7); border: 1px solid #aaa; padding: 12px; cursor: pointer; text-align: left; font-size:11px; }
         .item-card:active, .totem-card:active { background: rgba(255,255,255,0.1); }
         .item-active { border-color: #0f0; box-shadow: 0 0 10px #0f0; }
@@ -503,9 +531,10 @@ function renderSkinShop() {
         const owned = ownedSkins[s.id];
         list.innerHTML += `
         <div class="skin-card skin-rarity-${s.rarity} ${isSale ? 'skin-sale' : ''}" onclick="buySkin('${s.id}')">
-            ${s.name} (Редкость ${s.rarity})<br>
-            Цена: ${price} Осколков ${isSale ? '🔥СКИДКА' : ''}<br>
-            ${owned ? '✓ КУПЛЕНО' : ''}
+            <div class="skin-name">${s.name}</div>
+            <div class="skin-rarity-label">Редкость ${s.rarity}</div>
+            <div style="margin-top:4px; font-size:10px; color:#ffaa00;">Цена: ${price} Осколков ${isSale ? '🔥 СКИДКА' : ''}</div>
+            ${owned ? '<div style="margin-top:4px; color:#0f0;">✓ КУПЛЕНО</div>' : ''}
         </div>`;
     });
 }
@@ -752,44 +781,21 @@ function winEscape() {
     if (hasEscapedThisLevel) return;
     hasEscapedThisLevel = true;
     active = false;
-
-    // Сбрасываем эффекты (вызываем добавленную ранее функцию)
-    if (typeof resetDangerEffects === 'function') {
-        resetDangerEffects();
-    }
-
+    resetDangerEffects();
     let baseReward = isHard ? 20 : 10;
     let bonus = 0;
     if (streak === 10) bonus = 20;
     else if (streak >= 2) bonus = (streak - 1) * 2;
     coins += baseReward + bonus;
     streak = Math.min(streak + 1, 10);
-
-    try {
-        save();
-    } catch(e) {
-        console.error("Ошибка сохранения:", e);
-    }
-
-    // Переключаем экраны
-    if (document.getElementById('hud')) document.getElementById('hud').style.display = 'none';
-    if (document.getElementById('flash-btn')) document.getElementById('flash-btn').style.display = 'none';
-
-    const exitScreen = document.getElementById('exit-screen');
-    if (exitScreen) {
-        exitScreen.style.display = 'flex';
-    }
-
-    const streakUi = document.getElementById('streak-ui');
-    if (streakUi) streakUi.innerText = 'СЕРИЯ: ' + streak;
-
-
+    save();
+    document.getElementById('hud').style.display = 'none';
+    document.getElementById('flash-btn').style.display = 'none';
+    document.getElementById('exit-screen').style.display = 'flex';
+    document.getElementById('streak-ui').innerText = 'СЕРИЯ: ' + streak;
 }
-
-// Принудительно привязываем обработчики к окну (window), чтобы их точно видел HTML
 window.continueAfterWin = function() {
-    const exitScreen = document.getElementById('exit-screen');
-    if (exitScreen) exitScreen.style.display = 'none';
+    document.getElementById('exit-screen').style.display = 'none';
     startGame(isHard);
 };
 
@@ -1203,10 +1209,7 @@ window.goToMenu = function() {
     exorcismActive = false;
     devModeActive = false;
     if (devModeTimeout) clearTimeout(devModeTimeout);
-
-    if (typeof resetDangerEffects === 'function') resetDangerEffects();
-
-    // Массовое скрытие всех возможных окон и оверлеев
+    resetDangerEffects();
     const IDs = [
         'hud', 'flash-btn', 'exit-screen', 'win-screen', 'confirm-screen',
         'pause-menu', 'shop', 'settings', 'crate-overlay', 'itemShop',
@@ -1216,13 +1219,11 @@ window.goToMenu = function() {
         const el = document.getElementById(id);
         if (el) el.style.display = 'none';
     });
-
     const menu = document.getElementById('menu');
     if (menu) menu.style.display = 'flex';
-
-    if (typeof updateUI === 'function') updateUI();
-    if (typeof updateFlashBtn === 'function') updateFlashBtn();
-    if (typeof checkDailyButton === 'function') checkDailyButton();
+    updateUI();
+    updateFlashBtn();
+    checkDailyButton();
 };
 
 function openCrate(type) {
@@ -1340,86 +1341,6 @@ canvas.addEventListener('pointerleave', () => { if(touch) { touch = false; move 
 window.onresize = () => { canvas.width=window.innerWidth; canvas.height=window.innerHeight; excCanvas.width=window.innerWidth; excCanvas.height=window.innerHeight; };
 document.getElementById('crate-box').addEventListener('click', clickCrate);
 window.onresize(); updateUI(); checkDailyButton();
-// 3. REMOVED: })();
-// ========== НЕАГРЕССИВНАЯ ПРОВЕРКА ОБНОВЛЕНИЙ (МОБИЛЬНАЯ) ==========
-(function() {
-    const STORAGE_KEY = 'e_update_mobile';
-    const CHECK_INTERVAL = 30 * 60 * 1000; // 30 минут
-    const REPO_OWNER = 'rodiowa1';
-    const REPO_NAME = 'Echo-Defentive-Edition';
-    const FILE_NAME = 'Echo_new.html'; // проверяем именно этот файл
-
-    function getLastCommitDate(filePath) {
-        const url = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/commits?path=${encodeURIComponent(filePath)}&per_page=1`;
-        return fetch(url)
-            .then(res => {
-                if (!res.ok) throw new Error('API error');
-                return res.json();
-            })
-            .then(data => {
-                if (data.length === 0) return null;
-                return new Date(data[0].commit.committer.date);
-            })
-            .catch(() => null);
-    }
-
-    function checkUpdate() {
-        const lastCheckKey = STORAGE_KEY + '_lastCheck';
-        const lastSeenKey = STORAGE_KEY + '_lastSeen';
-        const now = Date.now();
-        const lastCheck = parseInt(localStorage.getItem(lastCheckKey) || '0');
-        if (now - lastCheck < CHECK_INTERVAL) return; // слишком часто
-
-        localStorage.setItem(lastCheckKey, String(now));
-        getLastCommitDate(FILE_NAME).then(date => {
-            if (!date) return;
-            const lastSeen = localStorage.getItem(lastSeenKey);
-            if (!lastSeen || new Date(lastSeen) < date) {
-                // Есть новая версия!
-                showUpdateNotification();
-                localStorage.setItem(lastSeenKey, date.toISOString());
-            }
-        });
-    }
-
-    function showUpdateNotification() {
-        const div = document.createElement('div');
-        div.style.cssText = `
-            position: fixed; bottom: 20px; left: 20px;
-            background: rgba(0,0,0,0.85);
-            color: #0f0;
-            border: 1px solid #0f0;
-            padding: 10px 15px;
-            font-family: 'Courier New', monospace;
-            font-size: 12px;
-            z-index: 9999;
-            border-radius: 8px;
-            box-shadow: 0 0 20px rgba(0,255,0,0.2);
-            cursor: pointer;
-            transition: opacity 0.5s;
-            max-width: 220px;
-            text-align: left;
-            line-height: 1.4;
-        `;
-        div.innerHTML = `
-            ⚡ <strong>Новая версия!</strong><br>
-            <span style="font-size:10px; color:#aaa;">Нажмите для скачивания</span>
-        `;
-        div.onclick = function() {
-            window.open('https://rodiowa1.github.io/Echo-Defentive-Edition/', '_blank');
-        };
-        document.body.appendChild(div);
-        // Через 10 секунд приглушаем, но не убираем полностью
-        setTimeout(() => {
-            div.style.opacity = '0.5';
-        }, 10000);
-        div.onmouseover = () => div.style.opacity = '1';
-        div.onmouseout = () => div.style.opacity = '0.5';
-    }
-
-    // Запускаем проверку через 5 секунд после загрузки игры
-    setTimeout(checkUpdate, 5000);
-})();
 </script>
 </body>
 </html>
