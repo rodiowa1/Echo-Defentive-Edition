@@ -89,8 +89,36 @@
         #crate-open-btn { display: none; }
         .crate-opening { animation: crateShake 0.1s infinite; }
         @keyframes crateShake { 0%{transform:translate(0,0)} 25%{transform:translate(-3px,2px)} 50%{transform:translate(2px,-1px)} 75%{transform:translate(-1px,-2px)} 100%{transform:translate(1px,1px)} }
-        .skin-rarity-1 { border-color: #00aaff; } .skin-rarity-2 { border-color: #0055ff; } .skin-rarity-3 { border-color: #aa00ff; } .skin-rarity-4 { border-color: #ff0000; } .skin-rarity-5 { border-color: #ffd700; }
-        .skin-sale { border: 2px dashed #ffaa00 !important; box-shadow: 0 0 15px #ffaa00; }
+
+        /* ===== ИСПРАВЛЕННЫЕ СТИЛИ ДЛЯ СКИНОВ ===== */
+        .skin-card {
+            width: 280px;
+            margin: 8px auto;
+            background: rgba(0,0,0,0.8);
+            padding: 12px 14px;
+            cursor: pointer;
+            text-align: left;
+            font-size: 11px;
+            border: 2px solid #444;
+            border-radius: 6px;
+            transition: 0.2s;
+            color: #ccc;
+            box-shadow: 0 0 8px rgba(255,255,255,0.05);
+        }
+        .skin-card:active { background: rgba(255,255,255,0.08); }
+        .skin-card .skin-name { font-weight: bold; color: #fff; }
+        .skin-card .skin-rarity-label { font-size: 10px; opacity: 0.7; }
+        .skin-rarity-1 { border-color: #00aaff; box-shadow: 0 0 10px rgba(0,170,255,0.3); }
+        .skin-rarity-2 { border-color: #0055ff; box-shadow: 0 0 10px rgba(0,85,255,0.3); }
+        .skin-rarity-3 { border-color: #aa00ff; box-shadow: 0 0 10px rgba(170,0,255,0.3); }
+        .skin-rarity-4 { border-color: #ff0000; box-shadow: 0 0 10px rgba(255,0,0,0.3); }
+        .skin-rarity-5 { border-color: #ffd700; box-shadow: 0 0 10px rgba(255,215,0,0.3); }
+        .skin-sale {
+            border: 2px dashed #ffaa00 !important;
+            box-shadow: 0 0 20px rgba(255,170,0,0.4) !important;
+            background: rgba(255,170,0,0.05);
+        }
+
         .item-card, .totem-card { width: 280px; margin: 8px auto; background: rgba(0,0,0,0.7); border: 1px solid #aaa; padding: 12px; cursor: pointer; text-align: left; font-size:11px; }
         .item-card:active, .totem-card:active { background: rgba(255,255,255,0.1); }
         .item-active { border-color: #0f0; box-shadow: 0 0 10px #0f0; }
@@ -103,7 +131,6 @@
             display: none;
         }
         .controls-hint span { color: #0f0; font-weight: bold; }
-        /* Стили для оптимизации */
         .opt-section {
             color: #ffaa00; font-size: 14px; margin-top: 20px;
             letter-spacing: 3px; border-top: 1px solid #333;
@@ -206,32 +233,11 @@
     <div class="setting-item">УПРАВЛЕНИЕ: <button class="btn" id="ctrl-mode-btn" onclick="toggleControlMode()" style="width:100%; margin:5px 0;">КЛАВИАТУРА</button></div>
     <div class="setting-item">ГРОМКОСТЬ: <span id="vol-val">50%</span><input type="range" min="0" max="100" value="50" oninput="changeVolume(this.value)"></div>
 
-    <!-- БЛОК ОПТИМИЗАЦИИ -->
     <div class="opt-section">⚡ ОПТИМИЗАЦИЯ</div>
 
     <div class="opt-item">
-        <div class="opt-label"><span>Масштаб рендеринга</span><span id="render-scale-label">0.5</span></div>
-        <input type="range" min="25" max="100" value="50" id="render-scale-slider" oninput="applyRenderScale(this.value/100)">
-    </div>
-
-    <div class="opt-item">
-        <div class="opt-label"><span>Количество стен</span><span id="wall-count-label">50</span></div>
-        <input type="range" min="15" max="80" value="50" id="wall-count-slider" oninput="applyWallCount(this.value)">
-    </div>
-
-    <div class="opt-item">
-        <div class="opt-label"><span>Макс. колец</span><span id="ring-limit-label">30</span></div>
-        <input type="range" min="10" max="60" value="30" id="ring-limit-slider" oninput="applyRingLimit(this.value)">
-    </div>
-
-    <div class="opt-item">
-        <div style="display:flex; justify-content:space-between; color:#aaa;"><span>Тени</span><span id="shadow-status">ВКЛ</span></div>
-        <button onclick="toggleShadows()">ВКЛ/ВЫКЛ</button>
-    </div>
-
-    <div class="opt-item">
-        <div style="display:flex; justify-content:space-between; color:#aaa;"><span>Ограничение FPS</span><span id="fps-limit-label">60</span></div>
-        <button onclick="toggleFpsLimit()">СМЕНИТЬ</button>
+        <div style="display:flex; justify-content:space-between; color:#aaa;"><span>Оптимизация</span><span id="optimization-status">ВЫКЛ</span></div>
+        <button onclick="toggleOptimization()">ВКЛ/ВЫКЛ</button>
     </div>
 
     <button class="btn" onclick="resetData()" style="border-color:#f00; color:#f00; margin-top:20px;">СБРОСИТЬ ПРОГРЕСС</button>
@@ -301,11 +307,12 @@ let activeItem = JSON.parse(localStorage.getItem('e_actItem')) || null;
 let activeTotem = JSON.parse(localStorage.getItem('e_actTotem')) || null;
 
 // ========== НАСТРОЙКИ ПРОИЗВОДИТЕЛЬНОСТИ ==========
-let renderScale = parseFloat(localStorage.getItem('e_renderScale')) || 0.5;
-let maxWalls = parseInt(localStorage.getItem('e_maxWalls')) || 50;
-let maxRings = parseInt(localStorage.getItem('e_maxRings')) || 30;
-let shadowsEnabled = localStorage.getItem('e_shadows') !== 'false';
-let fpsLimit = parseInt(localStorage.getItem('e_fpsLimit')) || 60;
+let optimizationEnabled = localStorage.getItem('e_optimization') === 'true';
+let renderScale = 1;
+let maxWalls = optimizationEnabled ? 30 : 50;
+let maxRings = optimizationEnabled ? 15 : 30;
+let shadowsEnabled = !optimizationEnabled;
+let fpsLimit = optimizationEnabled ? 30 : 0;
 let lastFrameTime = 0;
 let frameCount = 0;
 let lastFpsUpdate = 0;
@@ -608,9 +615,10 @@ function renderSkinShop() {
         const owned = ownedSkins[s.id];
         list.innerHTML += `
         <div class="skin-card skin-rarity-${s.rarity} ${isSale ? 'skin-sale' : ''}" onclick="buySkin('${s.id}')">
-            ${s.name} (Редкость ${s.rarity})<br>
-            Цена: ${price} Осколков ${isSale ? '🔥СКИДКА' : ''}<br>
-            ${owned ? '✓ КУПЛЕНО' : ''}
+            <div class="skin-name">${s.name}</div>
+            <div class="skin-rarity-label">Редкость ${s.rarity}</div>
+            <div style="margin-top:4px; font-size:10px; color:#ffaa00;">Цена: ${price} Осколков ${isSale ? '🔥 СКИДКА' : ''}</div>
+            ${owned ? '<div style="margin-top:4px; color:#0f0;">✓ КУПЛЕНО</div>' : ''}
         </div>`;
     });
 }
@@ -1226,17 +1234,17 @@ function draw() {
     // --- Стены ---
     walls.forEach(w => {
         if (!isWallVisible(w, camX, camY, canvas.width, canvas.height)) return;
-        let isVisible = w.a > 0 || h.isHacker || touch || devModeActive;
-        if(isVisible) {
-            let opacity = devModeActive ? 0.25 : (w.a > 0 ? w.a : (touch ? 0.15 : 0));
-            if(h.isHacker) opacity = 0.2;
-            ctx.save();
-            ctx.globalAlpha = opacity;
-            if (shadowsEnabled) { ctx.shadowBlur = 20; ctx.shadowColor = '#0f0'; }
-            ctx.fillStyle = 'rgba(0,255,0,0.1)'; ctx.fillRect(w.x,w.y,w.w,w.h);
-            ctx.strokeStyle = '#0f0'; ctx.lineWidth = 2; ctx.strokeRect(w.x,w.y,w.w,w.h);
-            ctx.restore();
-        }
+        // Стены всегда чуть видны (базовая прозрачность), эхо-импульсы делают их ярче.
+        // Это исключает врезание в полностью невидимую стену.
+        let baseOpacity = 0.12;
+        let opacity = devModeActive ? 0.25 : Math.max(baseOpacity, w.a);
+        if (h.isHacker) opacity = Math.max(opacity, 0.2);
+        ctx.save();
+        ctx.globalAlpha = opacity;
+        if (shadowsEnabled) { ctx.shadowBlur = 20; ctx.shadowColor = '#0f0'; }
+        ctx.fillStyle = 'rgba(0,255,0,0.1)'; ctx.fillRect(w.x,w.y,w.w,w.h);
+        ctx.strokeStyle = '#0f0'; ctx.lineWidth = 2; ctx.strokeRect(w.x,w.y,w.w,w.h);
+        ctx.restore();
     });
 
     // --- Монстр ---
@@ -1486,46 +1494,22 @@ function updateUI() {
 }
 function resetData() { if(confirm('СБРОСИТЬ ВЕСЬ ПРОГРЕСС?')) { localStorage.clear(); location.reload(); } }
 
-// ========== ФУНКЦИИ ДЛЯ ОПТИМИЗАЦИИ ==========
-function applyRenderScale(val) {
-    renderScale = val;
-    localStorage.setItem('e_renderScale', val);
-    document.getElementById('render-scale-label').innerText = val.toFixed(1);
+// ========== ФУНКЦИЯ ДЛЯ ОПТИМИЗАЦИИ ==========
+// Один переключатель вместо набора ползунков: ВЫКЛ — полное качество рендера
+// (как в мобильной версии ЭХО), ВКЛ — облегчённый рендер для слабых ПК.
+function toggleOptimization() {
+    optimizationEnabled = !optimizationEnabled;
+    localStorage.setItem('e_optimization', optimizationEnabled);
+    maxWalls = optimizationEnabled ? 30 : 50;
+    maxRings = optimizationEnabled ? 15 : 30;
+    shadowsEnabled = !optimizationEnabled;
+    fpsLimit = optimizationEnabled ? 30 : 0;
+    document.getElementById('optimization-status').innerText = optimizationEnabled ? 'ВКЛ' : 'ВЫКЛ';
     resizeCanvas();
-}
-function applyWallCount(val) {
-    maxWalls = parseInt(val);
-    localStorage.setItem('e_maxWalls', maxWalls);
-    document.getElementById('wall-count-label').innerText = maxWalls;
-}
-function applyRingLimit(val) {
-    maxRings = parseInt(val);
-    localStorage.setItem('e_maxRings', maxRings);
-    document.getElementById('ring-limit-label').innerText = maxRings;
-}
-function toggleShadows() {
-    shadowsEnabled = !shadowsEnabled;
-    localStorage.setItem('e_shadows', shadowsEnabled);
-    document.getElementById('shadow-status').innerText = shadowsEnabled ? 'ВКЛ' : 'ВЫКЛ';
-}
-function toggleFpsLimit() {
-    const limits = [30, 60, 0];
-    let idx = limits.indexOf(fpsLimit);
-    idx = (idx + 1) % limits.length;
-    fpsLimit = limits[idx];
-    localStorage.setItem('e_fpsLimit', fpsLimit);
-    document.getElementById('fps-limit-label').innerText = fpsLimit === 0 ? 'БЕЗ' : fpsLimit;
 }
 
 function loadOptimizationUI() {
-    document.getElementById('render-scale-slider').value = renderScale * 100;
-    document.getElementById('render-scale-label').innerText = renderScale.toFixed(1);
-    document.getElementById('wall-count-slider').value = maxWalls;
-    document.getElementById('wall-count-label').innerText = maxWalls;
-    document.getElementById('ring-limit-slider').value = maxRings;
-    document.getElementById('ring-limit-label').innerText = maxRings;
-    document.getElementById('shadow-status').innerText = shadowsEnabled ? 'ВКЛ' : 'ВЫКЛ';
-    document.getElementById('fps-limit-label').innerText = fpsLimit === 0 ? 'БЕЗ' : fpsLimit;
+    document.getElementById('optimization-status').innerText = optimizationEnabled ? 'ВКЛ' : 'ВЫКЛ';
 }
 
 // ========== РАЗМЕР CANVAS ==========

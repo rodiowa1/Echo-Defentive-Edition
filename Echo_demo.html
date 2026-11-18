@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ЭХО: DEFINITIVE EDITION</title>
+    <style>
+        body { margin: 0; overflow: hidden; background: #000; font-family: 'Courier New', monospace; touch-action: none; color: #0f0; }
+        canvas { display: block; width: 100vw; height: 100vh; position: absolute; }
+        
+        #creepy-text {
+            position: fixed; top: 80px; left: 50%; transform: translateX(-50%);
+            color: rgba(255, 0, 0, 0.6); font-size: 20px; font-weight: bold;
+            text-transform: uppercase; letter-spacing: 5px; pointer-events: none;
+            z-index: 1500; text-align: center; width: 100%; text-shadow: 0 0 10px #f00; opacity: 0; transition: opacity 0.5s;
+        }
+
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; text-align: center; }
+        h1, h2 { letter-spacing: 10px; font-size: 45px; margin: 0; color: #0f0; text-shadow: 0 0 20px #0f0; }
+        h2 { font-size: 25px; margin-bottom: 20px; }
+
+        .btn { padding: 12px; background: #000; color: #0f0; border: 2px solid #0f0; font-size: 13px; cursor: pointer; margin-top: 8px; width: 280px; text-transform: uppercase; font-family: inherit; font-weight: bold; outline: none; transition: 0.1s; }
+        .btn:active { background: #0f0; color: #000; }
+        
+        .setting-row { margin: 15px 0; width: 280px; text-align: left; }
+        input[type=range] { width: 100%; accent-color: #0f0; cursor: pointer; margin-top: 10px; }
+
+        #hud { position: fixed; top: 15px; left: 15px; right: 15px; display: flex; justify-content: space-between; z-index: 1000; display: none; }
+        #flash-btn { position: fixed; bottom: 30px; right: 30px; width: 90px; height: 90px; border-radius: 50%; border: 3px solid #0f0; color: #0f0; background: rgba(0,0,0,0.8); z-index: 1000; display: none; font-size: 11px; overflow: hidden; }
+        #flash-fill { position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(0,255,0,0.3); transition: height 0.1s linear; z-index: -1; }
+        
+        #scary-eye { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 5000; }
+        .eye-ball { width: 120px; height: 120px; background: #f00; border-radius: 50%; box-shadow: 0 0 80px #f00; animation: pulse 0.15s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+    </style>
+</head>
+<body>
+
+    <div id="creepy-text">ОНО ЗДЕСЬ</div>
+
+    <div id="hud">
+        <div id="coin-ui" style="background:rgba(0,0,0,0.9); padding:10px; border:1px solid #0f0;">ОЧКИ: 0</div>
+        <button class="btn" style="width:auto; margin:0; padding: 5px 15px;" onclick="togglePause()">ПАУЗА</button>
+    </div>
+
+    <div id="menu" class="overlay">
+        <h1>ЭХО</h1>
+        <div id="wallet-ui" style="margin: 10px 0; font-size: 18px; color: #0f0;">ВАШИ ОЧКИ: 0</div>
+        <button class="btn" onclick="startGame(false)">ОБЫЧНЫЙ (+3)</button>
+        <button class="btn" onclick="startGame(true)" style="color:#f00; border-color:#f00;">ХАРДКОР (+6)</button>
+        <button class="btn" onclick="openShop()">ГЕРОИ</button>
+        <button class="btn" onclick="openSettings()">НАСТРОЙКИ</button>
+    </div>
+
+    <div id="settings" class="overlay" style="display:none;">
+        <h2>НАСТРОЙКИ</h2>
+        <div class="setting-row">
+            ГРОМКОСТЬ: <span id="vol-val">50%</span>
+            <input type="range" id="vol-slider" min="0" max="1" step="0.1" value="0.5" oninput="updateVol(this.value)">
+        </div>
+        <button class="btn" id="ctrl-btn" onclick="toggleCtrl()">УПРАВЛЕНИЕ</button>
+        <button class="btn" onclick="toggleFS()">ПОЛНЫЙ ЭКРАН</button>
+        <button class="btn" onclick="closeSettings()" style="margin-top: 20px; border-color:#fff; color:#fff;">НАЗАД</button>
+    </div>
+
+    <div id="shop" class="overlay" style="display:none;">
+        <h2>ГЕРОИ</h2>
+        <div id="shop-list" style="max-height: 55vh; overflow-y: auto; width: 100%;"></div>
+        <button class="btn" onclick="closeShop()" style="margin-top:15px;">НАЗАД</button>
+    </div>
+
+    <div id="pause-menu" class="overlay" style="display:none;">
+        <h1>ПАУЗА</h1>
+        <button class="btn" onclick="togglePause()">ПРОДОЛЖИТЬ</button>
+        <button class="btn" onclick="exitToMenu()">В МЕНЮ</button>
+    </div>
+
+    <button id="flash-btn" onpointerdown="useFlash()">
+        <div id="flash-fill"></div>
+        ИМПУЛЬС<br><span id="cd-txt">ГОТОВ</span>
+    </button>
+
+    <div id="scary-eye"><div class="eye-ball"></div><h1 style="color:#fff; margin-top:30px;">ПОЙМАН</h1></div>
+    <canvas id="gameCanvas"></canvas>
+
+<script>
+// --- ХРАНИЛИЩЕ И АУДИО ---
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+let globalVolume = localStorage.getItem('echo_vol') !== null ? parseFloat(localStorage.getItem('echo_vol')) : 0.5;
+let ctrl = localStorage.getItem('echo_ctrl') || 'joy';
+let coins = parseInt(localStorage.getItem('echo_coins')) || 0;
+let owned = JSON.parse(localStorage.getItem('echo_owned')) || ['def'];
+let currentHeroId = localStorage.getItem('echo_hero') || 'def';
+
+function saveGame() {
+    localStorage.setItem('echo_coins', coins);
+    localStorage.setItem('echo_owned', JSON.stringify(owned));
+    localStorage.setItem('echo_hero', currentHeroId);
+}
+
+function playSound(freq, type, duration, vol, slide=0) {
+    if (globalVolume <= 0) return;
+    try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        if(slide) osc.frequency.exponentialRampToValueAtTime(slide, audioCtx.currentTime + duration);
+        gain.gain.setValueAtTime(vol * globalVolume, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(); osc.stop(audioCtx.currentTime + duration);
+    } catch(e) {}
+}
+
+function updateVol(v) {
+    globalVolume = parseFloat(v);
+    document.getElementById('vol-val').innerText = Math.round(globalVolume*100) + '%';
+    localStorage.setItem('echo_vol', globalVolume);
+}
+
+// --- ГЕРОИ ---
+const heroes = [
+    { id: 'def', name: 'ВЫЖИВШИЙ', price: 0, s: 6.5, noise: 450, cd: 5000, color: '#0f0', shape:'circle' },
+    { id: 'sur_blue', name: 'РАЗВЕДЧИК', price: 25, s: 7.2, noise: 400, cd: 3500, color: '#33f', shape:'circle' },
+    { id: 'scout', name: 'СКАУТ', price: 30, s: 9.0, noise: 250, cd: 4000, color: '#0ff', shape:'square' },
+    { id: 'eng', name: 'ТЕХНИК', price: 35, s: 5.5, noise: 450, cd: 1500, color: '#f0f', shape:'rhombus' },
+    { id: 'ghost', name: 'ПРИЗРАК', price: 50, s: 5.0, noise: 600, isGhost: true, cd: 5000, color: '#fff', shape:'triangle' },
+    { id: 'priest', name: 'СВЯЩЕННИК', price: 100, s: 6.0, noise: 400, cd: 5000, isPriest: true, color: '#ff0', shape:'star' }
+];
+let hero = heroes.find(h => h.id === currentHeroId) || heroes[0];
+
+// --- НАВИГАЦИЯ ---
+function openSettings() { document.getElementById('settings').style.display = 'flex'; }
+function closeSettings() { document.getElementById('settings').style.display = 'none'; }
+function openShop() {
+    const list = document.getElementById('shop-list'); list.innerHTML = '';
+    heroes.forEach(h => {
+        const isSelected = hero.id === h.id;
+        const isOwned = owned.includes(h.id);
+        const btnColor = isOwned ? h.color : '#555';
+        let label = isSelected ? '[ВЫБРАНО]' : (isOwned ? '[ВЫБРАТЬ]' : `ЦЕНА: ${h.price}`);
+        list.innerHTML += `<button class="btn" style="border-color:${btnColor}; color:${btnColor}" onclick="buyHero('${h.id}')">${h.name}<br><small>${label}</small></button>`;
+    });
+    document.getElementById('shop').style.display = 'flex';
+}
+function buyHero(id) {
+    const target = heroes.find(x => x.id === id);
+    if(owned.includes(id)) {
+        hero = target; currentHeroId = id; playSound(400, 'sine', 0.1, 0.2);
+    } else if(coins >= target.price) {
+        coins -= target.price; owned.push(id); hero = target; currentHeroId = id;
+        playSound(600, 'sine', 0.3, 0.3);
+    } else {
+        playSound(100, 'sine', 0.2, 0.2); // Ошибка
+    }
+    saveGame(); openShop(); updateUI();
+}
+function closeShop() { document.getElementById('shop').style.display = 'none'; }
+
+function toggleFS() {
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{});
+    else document.exitFullscreen();
+}
+function toggleCtrl() { 
+    ctrl = (ctrl === 'joy' ? 'follow' : 'joy'); 
+    localStorage.setItem('echo_ctrl', ctrl);
+    updateUI();
+}
+
+function updateUI() { 
+    document.getElementById('wallet-ui').innerText = "ВАШИ ОЧКИ: " + coins; 
+    document.getElementById('coin-ui').innerText = "ОЧКИ: " + coins; 
+    document.getElementById('vol-slider').value = globalVolume;
+    document.getElementById('vol-val').innerText = Math.round(globalVolume*100) + '%';
+    document.getElementById('ctrl-btn').innerText = `УПРАВЛЕНИЕ: ${ctrl === 'joy' ? 'ДЖОЙСТИК' : 'СЛЕДОВАНИЕ'}`;
+}
+
+// --- ЯДРО ИГРЫ ---
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+let WORLD=3000, isPaused=false, gameActive=false, isTouching=false, isHard=false;
+let arrowA=0, shakeX=0, shakeY=0, lastFlash=0;
+let p={x:0, y:0, tStart:{x:0, y:0}, tCurr:{x:0, y:0}, step:0, lastMove:0, canRevive: false};
+let m={x:0, y:0, targetX:0, targetY:0, stun:0, a:0, mode: 'hunt'};
+let ex={x:0, y:0, a:0}, move={x:0, y:0}, rings=[], walls=[];
+
+function startGame(hard) {
+    if(audioCtx.state === 'suspended') audioCtx.resume();
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{});
+    isHard = hard; WORLD = isHard ? 4000 : 3000;
+    p.x = 500; p.y = 500; p.canRevive = hero.isPriest;
+    do { ex.x = 500 + Math.random()*(WORLD-1000); ex.y = 500 + Math.random()*(WORLD-1000); } while (Math.hypot(ex.x-p.x, ex.y-p.y) < 1800);
+    do { m.x = 500 + Math.random()*(WORLD-1000); m.y = 500 + Math.random()*(WORLD-1000); } while (Math.hypot(m.x-p.x, m.y-p.y) < 1300);
+    m.stun=0; m.a=0; m.mode='hunt'; rings=[]; walls=[];
+    for(let i=0; i<70; i++) {
+        let wx = Math.random()*(WORLD-400)+200, wy = Math.random()*(WORLD-400)+200;
+        if(Math.hypot(wx-p.x, wy-p.y) > 400 && Math.hypot(wx-ex.x, wy-ex.y) > 300) walls.push({x:wx, y:wy, w:150, h:150, a:0});
+    }
+    document.getElementById('menu').style.display='none';
+    document.getElementById('hud').style.display='flex';
+    document.getElementById('flash-btn').style.display='block';
+    gameActive=true; isPaused=false; updateUI(); 
+    playSound(80, 'sawtooth', 0.6, 0.1, 40);
+    requestAnimationFrame(update);
+}
+
+function useFlash() {
+    let now = Date.now();
+    if(!gameActive || isPaused || now - lastFlash < hero.cd) return;
+    lastFlash = now; arrowA = 2.5;
+    playSound(150, 'sine', 0.8, 0.4, 600);
+    rings.push({x:p.x, y:p.y, r:0, a:2.2, color: hero.color}); 
+    if(Math.hypot(m.x-p.x, m.y-p.y) < 1300) { m.stun = now + 2000; m.targetX = p.x; m.targetY = p.y; m.mode = 'hunt'; }
+}
+
+window.addEventListener('pointerdown', e => { if(e.target.tagName !== 'BUTTON' && e.target.tagName !== 'INPUT' && gameActive) { isTouching=true; p.tStart={x:e.clientX, y:e.clientY}; p.tCurr={x:e.clientX, y:e.clientY}; } });
+window.addEventListener('pointermove', e => {
+    if(!isTouching || isPaused) return;
+    p.tCurr = {x:e.clientX, y:e.clientY};
+    let dx = p.tCurr.x - (ctrl==='joy' ? p.tStart.x : window.innerWidth/2);
+    let dy = p.tCurr.y - (ctrl==='joy' ? p.tStart.y : window.innerHeight/2);
+    let d = Math.hypot(dx, dy); if(d>5) move={x:dx/d, y:dy/d};
+});
+window.addEventListener('pointerup', () => { isTouching=false; move={x:0, y:0}; });
+
+function update() {
+    if(!gameActive) return;
+    if(!isPaused) {
+        if(isTouching && (move.x || move.y)) {
+            let vx=move.x*hero.s, vy=move.y*hero.s;
+            if(hero.isGhost || !walls.find(w=>p.x+vx+20>w.x && p.x+vx-20<w.x+w.w && p.y+18>w.y && p.y-18<w.y+w.h)) p.x += vx;
+            if(hero.isGhost || !walls.find(w=>p.x+18>w.x && p.x-18<w.x+w.w && p.y+vy+20>w.y && p.y+vy-20<w.y+w.h)) p.y += vy;
+            if(Date.now()-p.step > hero.noise) { 
+                rings.push({x:p.x, y:p.y, r:0, a:1.0, color: hero.color}); 
+                p.step=Date.now(); playSound(50, 'sine', 0.1, 0.05);
+            }
+            p.lastMove = Date.now(); m.targetX = p.x; m.targetY = p.y; m.mode = 'hunt';
+        }
+
+        let dist = Math.hypot(p.x-m.x, p.y-m.y);
+        if(dist < 700) {
+            shakeX = (Math.random()-0.5)*(1-(dist/700))*10;
+            shakeY = (Math.random()-0.5)*(1-(dist/700))*10;
+        } else { shakeX=0; shakeY=0; }
+
+        if(Date.now() > m.stun) {
+            if(Date.now()-p.lastMove > 1500 && m.mode === 'hunt') {
+                m.mode = 'patrol'; m.targetX = m.x + (Math.random()-0.5)*1500; m.targetY = m.y + (Math.random()-0.5)*1500;
+            }
+            let tx = (dist < 300) ? p.x : m.targetX;
+            let ty = (dist < 300) ? p.y : m.targetY;
+            let d = Math.hypot(tx-m.x, ty-m.y);
+            if(d > 5) {
+                let speed = (m.mode === 'patrol') ? 2.5 : (isHard ? 9.5 : 4.5);
+                m.x += (tx-m.x)/d * speed; m.y += (ty-m.y)/d * speed;
+            }
+            if(dist < 40) {
+                if(p.canRevive) { 
+                    p.canRevive=false; m.stun=Date.now()+5000; rings.push({x:p.x, y:p.y, r:0, a:5, color:'#fff'}); 
+                    playSound(900, 'square', 0.5, 0.3);
+                } else { 
+                    gameActive=false; playSound(100, 'sawtooth', 1.5, 0.5);
+                    document.getElementById('scary-eye').style.display='flex'; 
+                    setTimeout(()=>exitToMenu(), 2500); 
+                }
+            }
+        }
+
+        rings.forEach((r, i) => {
+            r.r += 14; r.a -= 0.015; if(r.a <= 0) rings.splice(i, 1);
+            if(Math.hypot(m.x-r.x, m.y-r.y) < r.r) m.a = Math.max(m.a, r.a);
+            if(Math.hypot(ex.x-r.x, ex.y-r.y) < r.r) ex.a = Math.max(ex.a, r.a);
+            walls.forEach(w => { if(Math.hypot(Math.max(w.x, Math.min(r.x, w.x+w.w))-r.x, Math.max(w.y, Math.min(r.y, w.y+w.h))-r.y)<r.r) w.a=Math.max(w.a, r.a); });
+        });
+        m.a *= 0.95; ex.a *= 0.95; walls.forEach(w=>w.a*=0.95);
+        if(arrowA > 0) arrowA -= 0.02;
+        if(Math.hypot(p.x-ex.x, p.y-ex.y) < 60) { 
+            coins += isHard ? 6 : 3; saveGame();
+            playSound(500, 'sine', 0.6, 0.3, 1500); exitToMenu(); 
+        }
+    }
+
+    ctx.fillStyle='#000'; ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.save(); ctx.translate(shakeX, shakeY);
+    ctx.save(); ctx.translate(-p.x+canvas.width/2, -p.y+canvas.height/2);
+    walls.forEach(w => { if(w.a>0.05) { ctx.globalAlpha=w.a; ctx.fillStyle='#030'; ctx.fillRect(w.x, w.y, w.w, w.h); } });
+    if(ex.a > 0.05) { ctx.globalAlpha=ex.a; ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(ex.x, ex.y, 45, 0, 6.28); ctx.fill(); }
+    if(m.a > 0.05) { ctx.globalAlpha=m.a; ctx.fillStyle = Date.now() < m.stun ? '#fff' : '#f00'; ctx.fillRect(m.x-25, m.y-25, 50, 50); }
+    ctx.globalAlpha=1;
+    rings.forEach(r => { ctx.beginPath(); ctx.arc(r.x, r.y, r.r, 0, 6.28); ctx.strokeStyle = r.color; ctx.lineWidth = 1; ctx.stroke(); });
+    ctx.fillStyle = hero.color; ctx.beginPath();
+    if(hero.shape === 'square') ctx.rect(p.x-20, p.y-20, 40, 40);
+    else if(hero.shape === 'star') { for(let i=0; i<10; i++) { let r = i%2===0?20:10; ctx.lineTo(p.x+Math.cos(i*Math.PI/5)*r, p.y+Math.sin(i*Math.PI/5)*r); } }
+    else if(hero.shape === 'rhombus') { ctx.moveTo(p.x, p.y-25); ctx.lineTo(p.x+20, p.y); ctx.lineTo(p.x, p.y+25); ctx.lineTo(p.x-20, p.y); }
+    else ctx.arc(p.x, p.y, 20, 0, 6.28);
+    ctx.fill();
+    ctx.restore(); ctx.restore();
+
+    let cd = Math.min(1, (Date.now() - lastFlash) / hero.cd);
+    document.getElementById('flash-fill').style.height = (cd * 100) + '%';
+    document.getElementById('cd-txt').innerText = cd >= 1 ? 'ГОТОВ' : ((hero.cd - (Date.now()-lastFlash))/1000).toFixed(1) + 's';
+    if(gameActive) requestAnimationFrame(update);
+}
+
+function exitToMenu() { 
+    gameActive=false; document.getElementById('menu').style.display='flex'; 
+    document.getElementById('hud').style.display='none'; document.getElementById('flash-btn').style.display='none';
+    document.getElementById('scary-eye').style.display='none'; updateUI();
+}
+
+function showCreepyText() {
+    if(!gameActive || isPaused) return;
+    const el = document.getElementById('creepy-text');
+    el.innerText = ["ОНО ТЕБЯ ВИДИТ", "БЕГИ", "НЕ ОБОРАЧИВАЙСЯ", "ОНО БЛИЗКО", "Я ВИЖУ ТВОЙ СВЕТ"][Math.floor(Math.random()*5)];
+    el.style.opacity = 0.8;
+    playSound(40, 'sine', 1, 0.2);
+    setTimeout(() => { el.style.opacity = 0; }, 2000);
+}
+
+window.onresize = () => { canvas.width=window.innerWidth; canvas.height=window.innerHeight; }; window.onresize();
+updateUI(); setInterval(showCreepyText, 7000);
+</script>
+</body>
+  </html>

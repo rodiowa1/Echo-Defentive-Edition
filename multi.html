@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Выбор режима</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            text-align: center;
+        }
+        .btn {
+            display: inline-block;
+            padding: 20px 50px;
+            margin: 20px;
+            font-size: 24px;
+            font-weight: bold;
+            text-decoration: none;
+            color: white;
+            border-radius: 10px;
+            transition: transform 0.2s, opacity 0.2s;
+        }
+        .btn:hover {
+            transform: scale(1.05);
+            opacity: 0.9;
+        }
+        .btn-online {
+            background-color: #28a745;
+        }
+        .btn-offline {
+            background-color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- ЗАМЕНИТЕ ССЫЛКИ НА НУЖНЫЕ -->
+        <a href="Echo_PC_multi.html" class="btn btn-online">Версия для ПК</a>
+        <a href="Echo_new_multi.html" class="btn btn-offline">Версия для телефона</a>
+    </div>
+</body>
+</html>
